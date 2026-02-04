@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Audit Report - {{ start_date|date:"Y-m-d" }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+        }
+
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .main-container {
+                box-shadow: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                max-width: 100% !important;
+                width: 100% !important;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 min-h-screen p-4 sm:p-12 print:p-0">
+
+    <div id="report-content"
+        class="main-container max-w-5xl mx-auto bg-white shadow-2xl rounded-2xl overflow-hidden print:shadow-none print:rounded-none">
+
+        <!-- Header -->
+        <div
+            class="bg-indigo-950 text-white p-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-96 h-96 bg-indigo-500/10 rounded-full -mr-48 -mt-48"></div>
+            <div class="relative z-10">
+                <div class="flex items-center gap-4 mb-4">
+                    <div
+                        class="w-12 h-12 bg-white text-indigo-950 rounded-xl flex items-center justify-center font-bold text-2xl shadow-xl shadow-indigo-900/50">
+                        KH</div>
+                    <div>
+                        <h1 class="text-3xl font-bold tracking-tight">KHEYRE HOTEL</h1>
+                        <p class="text-indigo-300 text-xs font-bold uppercase tracking-widest">Financial Audit Report
+                        </p>
+                    </div>
+                </div>
+                <div class="flex gap-8">
+                    <div class="bg-indigo-900/40 p-3 rounded-lg border border-indigo-800">
+                        <p class="text-[10px] text-indigo-400 font-bold uppercase mb-1">Audit Period</p>
+                        <p class="text-sm font-medium text-indigo-100">{{ start_date|date:"M d, Y" }} — {{
+                            end_date|date:"M d, Y" }}</p>
+                    </div>
+                    <div class="bg-indigo-900/40 p-3 rounded-lg border border-indigo-800">
+                        <p class="text-[10px] text-indigo-400 font-bold uppercase mb-1">Generated At</p>
+                        <p class="text-sm font-medium text-indigo-100">{% now "M d, Y H:i" %}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="text-right relative z-10">
+                <div
+                    class="inline-block px-4 py-2 bg-emerald-500 text-white rounded-full font-bold text-xs uppercase tracking-widest">
+                    Verified Statement</div>
+                <p class="text-indigo-400 text-[10px] mt-4 font-mono">MD-{{ start_date|date:"Ymd" }}-FAP</p>
+            </div>
+        </div>
+
+        <div class="p-10">
+            <!-- Summary Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100 relative overflow-hidden group">
+                    <div class="absolute left-0 top-0 h-full w-1.5 bg-emerald-500"></div>
+                    <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Total Gross Revenue
+                    </h4>
+                    <p class="text-3xl font-bold text-slate-900">${{ report_data.income }}</p>
+                </div>
+                <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100 relative overflow-hidden group">
+                    <div class="absolute left-0 top-0 h-full w-1.5 bg-red-500"></div>
+                    <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Approved Expenses
+                    </h4>
+                    <p class="text-3xl font-bold text-slate-900">${{ report_data.expenses }}</p>
+                </div>
+                <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100 relative overflow-hidden group">
+                    <div class="absolute left-0 top-0 h-full w-1.5 bg-blue-500"></div>
+                    <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Net Financial
+                        Position</h4>
+                    <p class="text-3xl font-bold text-slate-900">${{ report_data.profit }}</p>
+                </div>
+            </div>
+
+            <!-- Revenue Table -->
+            <div class="mb-12">
+                <div class="flex items-center gap-3 mb-4 border-b border-emerald-50 pb-2">
+                    <div class="p-1.5 bg-emerald-50 text-emerald-600 rounded-md">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                            </path>
+                        </svg>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-800 uppercase tracking-widest">Revenue Streams (Income)</h3>
+                </div>
+                <div class="rounded-xl border border-slate-100 overflow-hidden shadow-sm">
+                    <table class="w-full text-left text-sm">
+                        <thead>
+                            <tr class="bg-slate-900 text-white uppercase text-[9px] font-bold">
+                                <th class="px-4 py-3 w-12 text-center">#</th>
+                                <th class="px-4 py-3">Transaction Date</th>
+                                <th class="px-4 py-3">Source / Customer</th>
+                                <th class="px-4 py-3">Mode</th>
+                                <th class="px-4 py-3 text-right">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            {% for p in report_data.payments %}
+                            <tr>
+                                <td class="px-4 py-3 text-center text-slate-400 font-mono text-xs">{{ forloop.counter }}
+                                </td>
+                                <td class="px-4 py-3 font-mono text-xs text-slate-500">{{ p.date|date:"Y-m-d H:i" }}
+                                </td>
+                                <td class="px-4 py-3">
+                                    <p class="font-bold text-slate-800">{{ p.booking.guest.full_name }}</p>
+                                    <p class="text-[10px] text-slate-400">Booking #{{ p.booking.id }}</p>
+                                </td>
+                                <td class="px-4 py-3 text-xs text-slate-600">{{ p.get_payment_method_display }}</td>
+                                <td class="px-4 py-3 text-right font-bold text-emerald-600 font-mono">${{ p.amount }}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="px-4 py-12 text-center text-slate-300 italic text-xs">No revenue
+                                    recorded in this cycle</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Expense Table -->
+            <div class="mb-12">
+                <div class="flex items-center gap-3 mb-4 border-b border-red-50 pb-2">
+                    <div class="p-1.5 bg-red-50 text-red-600 rounded-md">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-sm font-bold text-slate-800 uppercase tracking-widest">Expenditure (Outflow)</h3>
+                </div>
+                <div class="rounded-xl border border-slate-100 overflow-hidden shadow-sm">
+                    <table class="w-full text-left text-sm">
+                        <thead>
+                            <tr class="bg-red-950 text-white uppercase text-[9px] font-bold">
+                                <th class="px-4 py-3 w-12 text-center">#</th>
+                                <th class="px-4 py-3">Expense Date</th>
+                                <th class="px-4 py-3">Ledger Category</th>
+                                <th class="px-4 py-3">Description</th>
+                                <th class="px-4 py-3 text-right">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            {% for e in report_data.expenses_list %}
+                            <tr>
+                                <td class="px-4 py-3 text-center text-slate-400 font-mono text-xs">{{ forloop.counter }}
+                                </td>
+                                <td class="px-4 py-3 font-mono text-xs text-slate-500">{{ e.date|date:"Y-m-d" }}</td>
+                                <td class="px-4 py-3 font-bold text-slate-700 text-xs uppercase">{{ e.category }}</td>
+                                <td class="px-4 py-3 text-slate-500 text-xs">{{ e.title }}</td>
+                                <td class="px-4 py-3 text-right font-bold text-red-600 font-mono">-${{ e.amount }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="px-4 py-12 text-center text-slate-300 italic text-xs">No expenses
+                                    recorded in this cycle</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Certification Section -->
+            <div
+                class="mt-20 pt-10 border-t-2 border-slate-50 flex flex-col md:flex-row justify-between items-start md:items-end gap-12">
+                <div class="text-[10px] text-slate-400 uppercase tracking-[0.2em] leading-loose">
+                    <p class="font-black text-slate-900 mb-2">Statement Certification</p>
+                    <p>I hereby certify that this report accurately reflects the financial state</p>
+                    <p>of Kheyre Hotel for the above mentioned period.</p>
+                </div>
+                <div class="text-center">
+                    <div class="h-16 border-b-2 border-slate-100 w-64 mb-4"></div>
+                    <p class="text-[10px] uppercase font-bold text-slate-400">Finance Director Signature</p>
+                </div>
+            </div>
+        </div>
+
+        <div
+            class="bg-slate-50 p-6 text-center text-[10px] text-slate-400 uppercase tracking-widest border-t border-slate-100">
+            KHMS Financial Reporting Engine v2.1 • Mogadishu, Somalia
+        </div>
+    </div>
+
+    <!-- UI Buttons -->
+    <div class="no-print fixed bottom-8 right-8 flex gap-3">
+        <button onclick="window.close()"
+            class="bg-white text-slate-600 px-6 py-3 rounded-full shadow-xl hover:bg-slate-50 font-bold border border-slate-200">
+            Close
+        </button>
+        <button onclick="exportToCSV()"
+            class="bg-blue-600 text-white px-6 py-3 rounded-full shadow-xl hover:bg-blue-700 font-bold flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                </path>
+            </svg>
+            Excel
+        </button>
+        <button onclick="window.print()"
+            class="bg-indigo-600 text-white px-8 py-3 rounded-full shadow-xl hover:bg-indigo-700 font-bold flex items-center gap-2 transform hover:scale-105 transition-all">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z">
+                </path>
+            </svg>
+            Print Audit Statement
+        </button>
+    </div>
+
+    <script>
+        function exportToCSV() {
+            let csv = [];
+            let tables = document.querySelectorAll("table");
+            tables.forEach((table, index) => {
+                let rows = table.querySelectorAll("tr");
+                csv.push(index === 0 ? "INCOME RECORDS" : "EXPENSE RECORDS");
+                for (let i = 0; i < rows.length; i++) {
+                    let row = [], cols = rows[i].querySelectorAll("td, th");
+                    for (let j = 0; j < cols.length; j++)
+                        row.push('"' + cols[j].innerText.replace(/"/g, '""').trim() + '"');
+                    csv.push(row.join(","));
+                }
+                csv.push(""); // empty line between tables
+            });
+            let csvFile = new Blob([csv.join("\n")], { type: "text/csv" });
+            let downloadLink = document.createElement("a");
+            downloadLink.download = "Financial_Audit_{{ start_date|date:'Y-m-d' }}.csv";
+            downloadLink.href = window.URL.createObjectURL(csvFile);
+            downloadLink.style.display = "none";
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Guest Manifest Report - {{ start_date|date:"Y-m-d" }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+
+            body {
+                background: white;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .main-container {
+                box-shadow: none !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                max-width: 100% !important;
+                width: 100% !important;
+            }
+
+            table {
+                width: 100% !important;
+            }
+
+            .page-break {
+                page-break-after: always;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 min-h-screen p-8 print:p-0">
+
+    <div id="report-content"
+        class="main-container max-w-4xl mx-auto bg-white shadow-lg p-8 rounded-lg print:shadow-none print:max-w-none">
+
+        <!-- Header -->
+        <div class="flex justify-between items-start mb-8 border-b border-gray-200 pb-4">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900 uppercase">Guest Arrival Report</h1>
+                <p class="text-sm text-gray-500">Immigration / Security Manifest</p>
+                <div class="mt-2 text-sm text-gray-600">
+                    <p><strong>Period:</strong> {{ start_date|date:"M d, Y" }} to {{ end_date|date:"M d, Y" }}</p>
+                    <p><strong>Total Arrivals:</strong> {{ bookings|length }}</p>
+                </div>
+            </div>
+            <div class="text-right">
+                <h2 class="text-xl font-bold text-gray-800">KHEYRE HOTEL</h2>
+                <p class="text-xs text-gray-500">Mogadishu, Somalia</p>
+                <p class="text-xs text-gray-500">Generated: {% now "Y-m-d H:i" %}</p>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <table class="w-full text-left text-sm border-collapse border border-gray-200">
+            <thead>
+                <tr class="bg-gray-50 text-gray-700 uppercase text-xs">
+                    <th class="border border-gray-200 px-2 py-2 w-12 text-center">#</th>
+                    <th class="border border-gray-200 px-2 py-2">Full Name</th>
+                    <th class="border border-gray-200 px-2 py-2">Phone number</th>
+                    <th class="border border-gray-200 px-2 py-2">ID / Passport</th>
+                    <th class="border border-gray-200 px-2 py-2">Nationality / Address</th>
+                    <th class="border border-gray-200 px-2 py-2">Arrival</th>
+                    <th class="border border-gray-200 px-2 py-2">Expected Departure</th>
+                    <th class="border border-gray-200 px-2 py-2 w-16 text-center">Room</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for booking in bookings %}
+                <tr>
+                    <td class="border border-gray-200 px-2 py-2 text-center text-gray-500">{{ forloop.counter }}</td>
+                    <td class="border border-gray-200 px-2 py-2 font-bold">{{ booking.guest.full_name }}</td>
+                    <td class="border border-gray-200 px-2 py-2 font-bold">{{ booking.guest.phone_number }}</td>
+                    <td class="border border-gray-200 px-2 py-2 text-xs">{{ booking.guest.id_card|default:"-" }}</td>
+                    <td class="border border-gray-200 px-2 py-2 text-xs">{{ booking.guest.address|default:"-" }}</td>
+                    <td class="border border-gray-200 px-2 py-2 text-xs">
+                        <!-- Use actual check-in if available, else planned -->
+                        {% if booking.actual_checkin %}
+                        {{ booking.actual_checkin|date:"Y-m-d H:i" }}
+                        {% else %}
+                        {{ booking.check_in_date|date:"Y-m-d" }} (Planned)
+                        {% endif %}
+                    </td>
+                    <td class="border border-gray-200 px-2 py-2 text-xs">{{ booking.check_out_date|date:"Y-m-d" }}</td>
+                    <td class="border border-gray-200 px-2 py-2 text-center font-bold">{{ booking.room.room_number }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="border border-gray-200 px-4 py-8 text-center text-gray-400">
+                        No arrivals recorded for this period.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Footer -->
+        <div class="mt-8 pt-8 border-t border-gray-200 flex justify-between items-end">
+            <div class="text-xs text-gray-400">
+                <p>Confidential Document - For Official Use Only</p>
+                <p>System: Kheyre Hotel Management System (KHMS)</p>
+            </div>
+            <div class="text-center w-64">
+                <div class="h-12 border-b border-gray-300 mb-2"></div>
+                <p class="text-xs uppercase font-bold text-gray-600">Receptionist Signature</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Controls -->
+    <div class="no-print fixed top-4 right-4 flex gap-2">
+        <button onclick="window.print()"
+            class="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 font-bold flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z">
+                </path>
+            </svg>
+            Print / PDF
+        </button>
+        <button onclick="exportToWord()"
+            class="bg-blue-800 text-white px-4 py-2 rounded shadow hover:bg-blue-900 font-bold flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                </path>
+            </svg>
+            Word
+        </button>
+        <button onclick="exportToCSV()"
+            class="bg-green-600 text-white px-4 py-2 rounded shadow hover:bg-green-700 font-bold flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                </path>
+            </svg>
+            Excel
+        </button>
+        <button onclick="window.close()"
+            class="bg-gray-200 text-gray-700 px-4 py-2 rounded shadow hover:bg-gray-300">Close</button>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        function exportToCSV() {
+            let csv = [];
+            let rows = document.querySelectorAll("table tr");
+
+            for (let i = 0; i < rows.length; i++) {
+                let row = [], cols = rows[i].querySelectorAll("td, th");
+                for (let j = 0; j < cols.length; j++)
+                    row.push('"' + cols[j].innerText.replace(/"/g, '""') + '"');
+                csv.push(row.join(","));
+            }
+
+            let csvFile = new Blob([csv.join("\n")], { type: "text/csv" });
+            let downloadLink = document.createElement("a");
+            downloadLink.download = "Guest_Manifest_{{ start_date|date:'Y-m-d' }}.csv";
+            downloadLink.href = window.URL.createObjectURL(csvFile);
+            downloadLink.style.display = "none";
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+        }
+
+        function exportToWord() {
+            var content = document.getElementById("report-content").innerHTML;
+
+            // Minimal HTML wrapper for Word
+            var header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' " +
+                "xmlns:w='urn:schemas-microsoft-com:office:word' " +
+                "xmlns='http://www.w3.org/TR/REC-html40'>" +
+                "<head><meta charset='utf-8'><title>Guest Manifest</title></head><body>";
+            var footer = "</body></html>";
+
+            var sourceHTML = header + content + footer;
+
+            var source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(sourceHTML);
+            var fileDownload = document.createElement("a");
+            document.body.appendChild(fileDownload);
+            fileDownload.href = source;
+            fileDownload.download = 'Guest_Manifest_{{ start_date|date:"Y-m-d" }}.doc';
+            fileDownload.click();
+            document.body.removeChild(fileDownload);
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,688 @@
+[
+  {
+    "model": "hotel.user",
+    "pk": 1,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$cdDeOPqBEwTQtSUkeHPUxi$xtm2P5/TYDiNHtFWuiDVBFgya3ASQIasUenk3bp7jwY=",
+      "last_login": "2026-02-02T14:36:33.343Z",
+      "is_superuser": true,
+      "username": "admin",
+      "first_name": "",
+      "last_name": "",
+      "email": "admin@example.com",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2026-01-30T17:29:11.431Z",
+      "role": "admin",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "hotel.user",
+    "pk": 2,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$lZBgeJ1fJyEYQhguuXYXC4$0RHWgFzHRnjsADeP8y2NK0qWhJnjOzmL/8RylrscnDs=",
+      "last_login": "2026-01-30T20:04:16.500Z",
+      "is_superuser": false,
+      "username": "staff",
+      "first_name": "",
+      "last_name": "",
+      "email": "staff@example.com",
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-01-30T17:29:15.371Z",
+      "role": "receptionist",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "hotel.user",
+    "pk": 3,
+    "fields": {
+      "password": "pbkdf2_sha256$1000000$prMbbTLJ7TpRH3BIZ8rZ87$9Xr2tJhoUuCHpxUVlr74A/Ox47j6i7AZNGGspDgtnrM=",
+      "last_login": "2026-02-01T16:49:13.074Z",
+      "is_superuser": true,
+      "username": "jaamac",
+      "first_name": "",
+      "last_name": "",
+      "email": "",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2026-02-01T14:40:59.606Z",
+      "role": "receptionist",
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "hotel.room",
+    "pk": 2,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "room_number": "101",
+      "room_type": "Single",
+      "price_per_night": "50.00",
+      "capacity": 1,
+      "status": "Available"
+    }
+  },
+  {
+    "model": "hotel.room",
+    "pk": 4,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "room_number": "103",
+      "room_type": "Single",
+      "price_per_night": "50.00",
+      "capacity": 1,
+      "status": "Available"
+    }
+  },
+  {
+    "model": "hotel.room",
+    "pk": 5,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "room_number": "104",
+      "room_type": "Single",
+      "price_per_night": "50.00",
+      "capacity": 1,
+      "status": "Occupied"
+    }
+  },
+  {
+    "model": "hotel.room",
+    "pk": 6,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "room_number": "105",
+      "room_type": "Double",
+      "price_per_night": "80.00",
+      "capacity": 2,
+      "status": "Occupied"
+    }
+  },
+  {
+    "model": "hotel.room",
+    "pk": 7,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "room_number": "106",
+      "room_type": "Double",
+      "price_per_night": "80.00",
+      "capacity": 2,
+      "status": "Available"
+    }
+  },
+  {
+    "model": "hotel.room",
+    "pk": 8,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "room_number": "107",
+      "room_type": "Double",
+      "price_per_night": "80.00",
+      "capacity": 2,
+      "status": "Occupied"
+    }
+  },
+  {
+    "model": "hotel.room",
+    "pk": 9,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "room_number": "108",
+      "room_type": "Double",
+      "price_per_night": "80.00",
+      "capacity": 2,
+      "status": "Available"
+    }
+  },
+  {
+    "model": "hotel.guest",
+    "pk": 6,
+    "fields": {
+      "is_deleted": true,
+      "deleted_at": "2026-02-04T08:56:06.066Z",
+      "full_name": "maxamuud osman ali",
+      "phone_number": "6663636636",
+      "id_card": "",
+      "address": "",
+      "created_at": "2026-01-30T20:39:21.651Z"
+    }
+  },
+  {
+    "model": "hotel.guest",
+    "pk": 8,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "full_name": "mohamed cilmi isamil",
+      "phone_number": "8777777777",
+      "id_card": "",
+      "address": "",
+      "created_at": "2026-01-30T20:56:08.626Z"
+    }
+  },
+  {
+    "model": "hotel.guest",
+    "pk": 10,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "full_name": "mohamed hussein isamil",
+      "phone_number": "634248535",
+      "id_card": "",
+      "address": "hargeisa",
+      "created_at": "2026-02-02T15:06:09.411Z"
+    }
+  },
+  {
+    "model": "hotel.guest",
+    "pk": 11,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "full_name": "mohamed hussein isamil",
+      "phone_number": "634248535",
+      "id_card": "",
+      "address": "hargeisa",
+      "created_at": "2026-02-02T15:06:09.508Z"
+    }
+  },
+  {
+    "model": "hotel.guest",
+    "pk": 12,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "full_name": "mohamed hussein isamil",
+      "phone_number": "634248535",
+      "id_card": "",
+      "address": "hargeisa",
+      "created_at": "2026-02-02T15:06:09.514Z"
+    }
+  },
+  {
+    "model": "hotel.guest",
+    "pk": 13,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "full_name": "mohamed hussein Esmail",
+      "phone_number": "3556",
+      "id_card": "",
+      "address": "",
+      "created_at": "2026-02-02T15:06:56.427Z"
+    }
+  },
+  {
+    "model": "hotel.guest",
+    "pk": 14,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "full_name": "khaalid ahmed elmi",
+      "phone_number": "8888888",
+      "id_card": "",
+      "address": "",
+      "created_at": "2026-02-02T15:07:34.219Z"
+    }
+  },
+  {
+    "model": "hotel.guest",
+    "pk": 15,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "full_name": "Mohamed Ahmed Ali",
+      "phone_number": "+252-61-1234567",
+      "id_card": "ID001234",
+      "address": "Mogadishu, Somalia",
+      "created_at": "2026-02-04T07:05:53.959Z"
+    }
+  },
+  {
+    "model": "hotel.guest",
+    "pk": 16,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "full_name": "Idiris Abdi Aadan",
+      "phone_number": "+252-61-2345678",
+      "id_card": "ID002345",
+      "address": "Hargeisa, Somalia",
+      "created_at": "2026-02-04T07:05:54.021Z"
+    }
+  },
+  {
+    "model": "hotel.guest",
+    "pk": 17,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "full_name": "Suhayb Aadan Ahmed",
+      "phone_number": "+252-61-3456789",
+      "id_card": "ID003456",
+      "address": "Kismayo, Somalia",
+      "created_at": "2026-02-04T07:05:54.048Z"
+    }
+  },
+  {
+    "model": "hotel.booking",
+    "pk": 9,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "guest": 6,
+      "room": 2,
+      "check_in_date": "2026-02-02",
+      "check_out_date": "2026-02-03",
+      "actual_checkin": "2026-02-02T08:19:16.660Z",
+      "actual_checkout": "2026-02-02T08:38:18.743Z",
+      "status": "Checked-Out",
+      "booking_date": "2026-02-02T08:14:49.698Z",
+      "room_rate": "50.00",
+      "deposit_amount": "15.00",
+      "notes": "",
+      "discount": "0.00"
+    }
+  },
+  {
+    "model": "hotel.booking",
+    "pk": 10,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "guest": 6,
+      "room": 4,
+      "check_in_date": "2026-02-02",
+      "check_out_date": "2026-02-03",
+      "actual_checkin": "2026-02-02T08:15:46.161Z",
+      "actual_checkout": "2026-02-02T08:16:29.193Z",
+      "status": "Checked-Out",
+      "booking_date": "2026-02-02T08:15:08.451Z",
+      "room_rate": "50.00",
+      "deposit_amount": "15.00",
+      "notes": "",
+      "discount": "0.00"
+    }
+  },
+  {
+    "model": "hotel.booking",
+    "pk": 11,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "guest": 6,
+      "room": 4,
+      "check_in_date": "2026-02-05",
+      "check_out_date": "2026-02-06",
+      "actual_checkin": "2026-02-02T08:46:00.995Z",
+      "actual_checkout": "2026-02-02T15:10:57.498Z",
+      "status": "Checked-Out",
+      "booking_date": "2026-02-02T08:45:43.211Z",
+      "room_rate": "50.00",
+      "deposit_amount": "15.00",
+      "notes": "",
+      "discount": "0.00"
+    }
+  },
+  {
+    "model": "hotel.booking",
+    "pk": 12,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "guest": 8,
+      "room": 8,
+      "check_in_date": "2026-02-13",
+      "check_out_date": "2026-02-14",
+      "actual_checkin": "2026-02-02T14:37:44.051Z",
+      "actual_checkout": "2026-02-02T14:40:04.555Z",
+      "status": "Checked-Out",
+      "booking_date": "2026-02-02T14:37:27.942Z",
+      "room_rate": "80.00",
+      "deposit_amount": "24.00",
+      "notes": "",
+      "discount": "0.00"
+    }
+  },
+  {
+    "model": "hotel.booking",
+    "pk": 13,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "guest": 14,
+      "room": 5,
+      "check_in_date": "2026-02-04",
+      "check_out_date": "2026-02-12",
+      "actual_checkin": "2026-02-02T15:08:21.607Z",
+      "actual_checkout": "2026-02-02T15:09:41.545Z",
+      "status": "Checked-Out",
+      "booking_date": "2026-02-02T15:07:55.971Z",
+      "room_rate": "50.00",
+      "deposit_amount": "30.00",
+      "notes": "",
+      "discount": "0.00"
+    }
+  },
+  {
+    "model": "hotel.booking",
+    "pk": 14,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "guest": 14,
+      "room": 5,
+      "check_in_date": "2026-02-13",
+      "check_out_date": "2026-02-20",
+      "actual_checkin": "2026-02-02T15:46:37.214Z",
+      "actual_checkout": null,
+      "status": "Checked-In",
+      "booking_date": "2026-02-02T15:46:17.621Z",
+      "room_rate": "50.00",
+      "deposit_amount": "15.00",
+      "notes": "",
+      "discount": "20.00"
+    }
+  },
+  {
+    "model": "hotel.booking",
+    "pk": 15,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "guest": 15,
+      "room": 2,
+      "check_in_date": "2026-02-04",
+      "check_out_date": "2026-02-07",
+      "actual_checkin": null,
+      "actual_checkout": null,
+      "status": "Checked-Out",
+      "booking_date": "2026-02-04T07:05:54.077Z",
+      "room_rate": "50.00",
+      "deposit_amount": "45.00",
+      "notes": "",
+      "discount": "0.00"
+    }
+  },
+  {
+    "model": "hotel.booking",
+    "pk": 16,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "guest": 16,
+      "room": 6,
+      "check_in_date": "2026-02-04",
+      "check_out_date": "2026-02-07",
+      "actual_checkin": null,
+      "actual_checkout": null,
+      "status": "Checked-In",
+      "booking_date": "2026-02-04T07:05:54.148Z",
+      "room_rate": "80.00",
+      "deposit_amount": "72.00",
+      "notes": "",
+      "discount": "0.00"
+    }
+  },
+  {
+    "model": "hotel.booking",
+    "pk": 17,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "guest": 17,
+      "room": 8,
+      "check_in_date": "2026-02-04",
+      "check_out_date": "2026-02-07",
+      "actual_checkin": null,
+      "actual_checkout": null,
+      "status": "Checked-In",
+      "booking_date": "2026-02-04T07:05:55.173Z",
+      "room_rate": "80.00",
+      "deposit_amount": "72.00",
+      "notes": "",
+      "discount": "0.00"
+    }
+  },
+  {
+    "model": "hotel.booking",
+    "pk": 18,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "guest": 10,
+      "room": 6,
+      "check_in_date": "2026-02-14",
+      "check_out_date": "2026-02-05",
+      "actual_checkin": "2026-02-04T14:11:45.764Z",
+      "actual_checkout": null,
+      "status": "Checked-In",
+      "booking_date": "2026-02-04T14:11:37.739Z",
+      "room_rate": "80.00",
+      "deposit_amount": "24.00",
+      "notes": "",
+      "discount": "0.00"
+    }
+  },
+  {
+    "model": "hotel.payment",
+    "pk": 20,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "booking": 16,
+      "payment_type": "Payment",
+      "amount": "120.00",
+      "payment_method": "Mobile",
+      "reference_number": "PAY-F88BB78D",
+      "date": "2026-02-04T07:05:56.326Z",
+      "recorded_by": 1,
+      "notes": ""
+    }
+  },
+  {
+    "model": "hotel.payment",
+    "pk": 19,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "booking": 15,
+      "payment_type": "Payment",
+      "amount": "150.00",
+      "payment_method": "Cash",
+      "reference_number": "PAY-8E213166",
+      "date": "2026-02-04T07:05:55.960Z",
+      "recorded_by": 1,
+      "notes": ""
+    }
+  },
+  {
+    "model": "hotel.payment",
+    "pk": 18,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "booking": 14,
+      "payment_type": "Payment",
+      "amount": "330.00",
+      "payment_method": null,
+      "reference_number": "PAY-6153583B",
+      "date": "2026-02-02T16:21:08.723Z",
+      "recorded_by": 1,
+      "notes": ""
+    }
+  },
+  {
+    "model": "hotel.payment",
+    "pk": 17,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "booking": 11,
+      "payment_type": "Payment",
+      "amount": "50.00",
+      "payment_method": "Cash",
+      "reference_number": "PAY-730ACCBE",
+      "date": "2026-02-02T15:10:52.317Z",
+      "recorded_by": 1,
+      "notes": ""
+    }
+  },
+  {
+    "model": "hotel.payment",
+    "pk": 16,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "booking": 13,
+      "payment_type": "Payment",
+      "amount": "31.00",
+      "payment_method": "Bank",
+      "reference_number": "PAY-46343F4A",
+      "date": "2026-02-02T15:09:36.415Z",
+      "recorded_by": 1,
+      "notes": ""
+    }
+  },
+  {
+    "model": "hotel.payment",
+    "pk": 15,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "booking": 13,
+      "payment_type": "Payment",
+      "amount": "69.00",
+      "payment_method": "Mobile",
+      "reference_number": "PAY-A94E24C1",
+      "date": "2026-02-02T15:08:54.763Z",
+      "recorded_by": 1,
+      "notes": ""
+    }
+  },
+  {
+    "model": "hotel.payment",
+    "pk": 14,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "booking": 12,
+      "payment_type": "Payment",
+      "amount": "35.00",
+      "payment_method": "Cash",
+      "reference_number": "PAY-0F7DDB2E",
+      "date": "2026-02-02T14:39:43.305Z",
+      "recorded_by": 1,
+      "notes": ""
+    }
+  },
+  {
+    "model": "hotel.payment",
+    "pk": 13,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "booking": 12,
+      "payment_type": "Payment",
+      "amount": "45.00",
+      "payment_method": "Bank",
+      "reference_number": "PAY-AC9091C9",
+      "date": "2026-02-02T14:39:20.006Z",
+      "recorded_by": 1,
+      "notes": ""
+    }
+  },
+  {
+    "model": "hotel.payment",
+    "pk": 12,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "booking": 9,
+      "payment_type": "Payment",
+      "amount": "50.00",
+      "payment_method": "Bank",
+      "reference_number": "PAY-4809A208",
+      "date": "2026-02-02T08:37:44.707Z",
+      "recorded_by": 1,
+      "notes": ""
+    }
+  },
+  {
+    "model": "hotel.payment",
+    "pk": 11,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "booking": 10,
+      "payment_type": "Payment",
+      "amount": "30.00",
+      "payment_method": "Bank",
+      "reference_number": "PAY-77B949A6",
+      "date": "2026-02-02T08:16:26.934Z",
+      "recorded_by": 1,
+      "notes": ""
+    }
+  },
+  {
+    "model": "hotel.payment",
+    "pk": 10,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "booking": 10,
+      "payment_type": "Payment",
+      "amount": "20.00",
+      "payment_method": "Mobile",
+      "reference_number": "PAY-BFE73F90",
+      "date": "2026-02-02T08:16:09.692Z",
+      "recorded_by": 1,
+      "notes": ""
+    }
+  },
+  {
+    "model": "hotel.expense",
+    "pk": 2,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "title": "electrivcy",
+      "category": "laydh",
+      "amount": "30.00",
+      "date": "2026-02-02",
+      "description": "bille",
+      "status": "Approved",
+      "created_by": 1,
+      "approved_by": 1
+    }
+  },
+  {
+    "model": "hotel.expense",
+    "pk": 3,
+    "fields": {
+      "is_deleted": false,
+      "deleted_at": null,
+      "title": "electrivcy",
+      "category": "laydh",
+      "amount": "30.00",
+      "date": "2026-02-02",
+      "description": "bille",
+      "status": "Approved",
+      "created_by": 1,
+      "approved_by": 1
+    }
+  }
+]

@@ -1,0 +1,351 @@
+KHEYRE HOTEL MANAGEMENT SYSTEM (KHMS)
+
+Single Django App – Full Requirements
+
+1. System Overview
+
+Kheyre Hotel Management System (KHMS) is a web-based internal hotel management system built using one Django app only.
+The system manages all daily hotel operations from a single, unified application.
+
+Technology stack:
+
+Backend: Django
+
+Frontend: Django Templates + Tailwind CSS + JavaScript
+
+Database: Django default SQLite (initial)
+
+2. Core Design Rule (VERY IMPORTANT)
+
+The entire system must be implemented inside ONE Django app
+
+No multiple apps (no accounts/, rooms/, bookings/, etc.)
+
+All models, views, URLs, and templates belong to one app
+
+Django’s built-in authentication system is used
+
+Permissions are handled using roles inside the same app
+
+3. User Roles & Access Control
+3.1 System Roles
+
+Only two roles exist:
+
+Admin / Hotel Owner
+
+Receptionist
+
+No cleaners, no accountants, no managers.
+
+3.2 Role Permissions
+Admin / Owner
+
+Full system access
+
+Create, update, activate, deactivate receptionist users
+
+Manage rooms and room pricing
+
+View all bookings, guests, payments, and expenses
+
+Approve or reject expenses
+
+View all reports
+
+Access full dashboard
+
+Receptionist
+
+Register and manage guests
+
+Create and manage bookings
+
+Perform check-in and check-out
+
+Generate invoices
+
+Record payments (cash / mobile money)
+
+Record expenses (requires admin approval)
+
+View limited daily reports
+
+4. Authentication & Login Flow
+
+Django built-in authentication (django.contrib.auth)
+
+All users log in using username and password
+
+After login:
+
+Admin → Admin Dashboard
+
+Receptionist → Receptionist Dashboard
+
+Views and templates must restrict access by role
+
+5. User Management (Inside Same App)
+
+Admin creates receptionist users from the system
+
+Each user has:
+
+Username
+
+Password
+
+Role (Admin or Receptionist)
+
+Status (Active / Inactive)
+
+Inactive users cannot log in
+
+6. Room Management
+Room Data Fields
+
+Room number
+
+Room type (Single, Double, Suite)
+
+Price per night
+
+Capacity
+
+Status
+
+Room Status
+
+Available
+
+Booked
+
+Occupied
+
+Maintenance
+
+Admin manages rooms.
+Receptionist can only view room availability.
+
+7. Guest Management
+Guest Data
+
+Full name
+
+Phone number
+
+ID / Passport
+
+Address (optional)
+
+Guest history is stored and reused for future bookings.
+
+8. Booking Management
+Booking Flow
+
+Select check-in and check-out dates
+
+Check room availability
+
+Select room
+
+Enter or select guest
+
+Create booking
+
+Booking Status
+
+Pending
+
+Confirmed
+
+Checked-In
+
+Checked-Out
+
+Cancelled
+
+Booking Rules
+
+No double booking
+
+Date validation required
+
+Cost calculated automatically
+
+9. Check-In & Check-Out
+Check-In
+
+Booking must be confirmed
+
+Room status → Occupied
+
+Check-in date/time recorded
+
+Check-Out
+
+Payment verified
+
+Invoice finalized
+
+Room status → Available
+
+10. Billing & Invoice Management
+
+One invoice per booking
+
+Invoice includes:
+
+Guest details
+
+Room details
+
+Stay duration
+
+Price per night
+
+Total amount
+
+Invoice status is automatic
+
+11. Payment Management (Split Payments)
+Payment Rules
+
+One invoice can have multiple payments
+
+Payments are recorded separately
+
+Supports partial payments
+
+Payment Methods
+
+Cash
+
+Mobile Money
+
+Bank Transfer (optional)
+
+Payment Status
+
+Unpaid
+
+Partial
+
+Paid
+
+12. Expense Management (Admin Approval Required)
+Expense Fields
+
+Title
+
+Category
+
+Amount
+
+Date
+
+Description
+
+Status
+
+Expense Status
+
+Pending (default)
+
+Approved
+
+Rejected
+
+Receptionist can record expenses.
+Admin must approve expenses before they affect reports.
+
+13. Dashboard
+Admin Dashboard
+
+Total rooms
+
+Occupied rooms
+
+Today’s income
+
+Total expenses
+
+Pending expense approvals
+
+Monthly profit summary
+
+Receptionist Dashboard
+
+Available rooms
+
+Today’s bookings
+
+Today’s payments
+
+Pending check-outs
+
+14. Reports
+Admin Reports
+
+Daily income
+
+Monthly income
+
+Expenses
+
+Profit / Loss
+
+Room occupancy
+
+Receptionist Reports
+
+Daily bookings
+
+Daily payments
+
+15. Database Models (All in One App)
+
+The single app must include models for:
+
+User (Django User + role)
+
+Room
+
+Guest
+
+Booking
+
+Invoice
+
+Payment
+
+Expense
+
+16. Security Requirements
+
+Role-based access control
+
+CSRF protection
+
+Password hashing
+
+Input validation
+
+Audit logs for payments and expense approvals
+
+17. Non-Functional Requirements
+
+Responsive UI (Tailwind)
+
+Simple and easy to use
+
+Fast system performance
+
+Clean and maintainable code
+
+
+
+“Build Kheyre Hotel Management System using Django with ONE APP ONLY.
+Use Django authentication, Tailwind CSS, JavaScript, SQLite database,
+Admin and Receptionist roles only, split payments, and expense approval.”
+

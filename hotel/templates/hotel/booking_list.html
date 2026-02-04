@@ -1,0 +1,71 @@
+﻿{% extends 'hotel/base.html' %}
+
+{% block title %}Bookings{% endblock %}
+{% block header %}Booking Management{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+        <h3 class="text-lg font-semibold text-gray-800">Reservation List</h3>
+        <a href="{% url 'create_booking' %}"
+            class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">New Booking</a>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-gray-600">
+            <thead class="bg-gray-50 text-gray-700 uppercase text-xs font-semibold">
+                <tr>
+                    <th class="px-6 py-3">ID</th>
+                    <th class="px-6 py-3">Guest</th>
+                    <th class="px-6 py-3">Room</th>
+                    <th class="px-6 py-3">Check In</th>
+                    <th class="px-6 py-3">Check Out</th>
+                    <th class="px-6 py-3">Status</th>
+                    <th class="px-6 py-3 text-right">Action</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for booking in bookings %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 font-medium text-gray-800">#{{ booking.id }}</td>
+                    <td class="px-6 py-4">
+                        <div class="font-medium text-gray-800">{{ booking.guest.full_name }}</div>
+                        <div class="text-xs text-gray-500">{{ booking.guest.phone_number }}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        Room {{ booking.room.room_number }}
+                    </td>
+                    <td class="px-6 py-4">{{ booking.check_in_date }}</td>
+                    <td class="px-6 py-4">{{ booking.check_out_date }}</td>
+                    <td class="px-6 py-4">
+                        <span class="px-2 py-1 rounded-full text-xs font-semibold
+                            {% if booking.status == 'Confirmed' %}bg-blue-100 text-blue-700
+                            {% elif booking.status == 'Checked-In' %}bg-green-100 text-green-700
+                            {% elif booking.status == 'Checked-Out' %}bg-gray-100 text-gray-700
+                            {% else %}bg-orange-100 text-orange-700{% endif %}">
+                            {{ booking.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <div class="flex justify-end items-center gap-3">
+                            <a href="{% url 'booking_detail' booking.id %}"
+                                class="text-blue-600 hover:text-blue-800 font-medium">View</a>
+                            <a href="{% url 'edit_booking' booking.id %}"
+                                class="text-emerald-600 hover:text-emerald-800 font-medium">Edit</a>
+                            {% if user.role == 'admin' %}
+                            <a href="{% url 'delete_booking' booking.id %}"
+                                onclick="return confirm('Are you sure you want to delete this booking?')"
+                                class="text-red-500 hover:text-red-700 font-medium">Delete</a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="px-6 py-8 text-center text-gray-400">No bookings found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

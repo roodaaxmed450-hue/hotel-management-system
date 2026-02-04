@@ -1,0 +1,60 @@
+﻿{% extends 'hotel/base.html' %}
+
+{% block title %}System Users{% endblock %}
+{% block header %}User Management{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+        <h3 class="text-lg font-semibold text-gray-800">System Users</h3>
+        <a href="{% url 'add_user' %}" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">Add
+            User</a>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-gray-600">
+            <thead class="bg-gray-50 text-gray-700 uppercase text-xs font-semibold">
+                <tr>
+                    <th class="px-6 py-3">Username</th>
+                    <th class="px-6 py-3">Email</th>
+                    <th class="px-6 py-3">Role</th>
+                    <th class="px-6 py-3">Status</th>
+                    <th class="px-6 py-3 text-right">Action</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for u in users %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 font-medium text-gray-800">{{ u.username }}</td>
+                    <td class="px-6 py-4">{{ u.email }}</td>
+                    <td class="px-6 py-4">{{ u.get_role_display }}</td>
+                    <td class="px-6 py-4">
+                        {% if u.is_active %}
+                        <span
+                            class="px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">Active</span>
+                        {% else %}
+                        <span
+                            class="px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        {% if u != user %}
+                        <a href="{% url 'toggle_user_status' u.id %}"
+                            class="text-sm font-medium hover:underline
+                                {% if u.is_active %}text-red-600 hover:text-red-800{% else %}text-green-600 hover:text-green-800{% endif %}">
+                            {% if u.is_active %}Deactivate{% else %}Activate{% endif %}
+                        </a>
+                        {% else %}
+                        <span class="text-xs text-gray-400">Current User</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="px-6 py-8 text-center text-gray-400">No users found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

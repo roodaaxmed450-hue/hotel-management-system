@@ -1,0 +1,329 @@
+{% extends 'hotel/base.html' %}
+
+{% block title %}Financial Reports{% endblock %}
+{% block header %}Financial Reports{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+    <!-- Filter Control Bar -->
+    <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+
+            <!-- Quick Filters -->
+            <div class="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
+                <a href="?filter=today"
+                    class="px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap
+                   {% if filter_type == 'today' %}bg-blue-600 text-white shadow-md shadow-blue-200{% else %}bg-gray-50 text-gray-600 hover:bg-gray-100{% endif %}">
+                    Today
+                </a>
+                <a href="?filter=yesterday"
+                    class="px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap
+                   {% if filter_type == 'yesterday' %}bg-blue-600 text-white shadow-md shadow-blue-200{% else %}bg-gray-50 text-gray-600 hover:bg-gray-100{% endif %}">
+                    Yesterday
+                </a>
+                <a href="?filter=week"
+                    class="px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap
+                   {% if filter_type == 'week' %}bg-blue-600 text-white shadow-md shadow-blue-200{% else %}bg-gray-50 text-gray-600 hover:bg-gray-100{% endif %}">
+                    This Week
+                </a>
+                <a href="?filter=month"
+                    class="px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap
+                   {% if filter_type == 'month' %}bg-blue-600 text-white shadow-md shadow-blue-200{% else %}bg-gray-50 text-gray-600 hover:bg-gray-100{% endif %}">
+                    This Month
+                </a>
+                <a href="?filter=year"
+                    class="px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap
+                   {% if filter_type == 'year' %}bg-blue-600 text-white shadow-md shadow-blue-200{% else %}bg-gray-50 text-gray-600 hover:bg-gray-100{% endif %}">
+                    This Year
+                </a>
+            </div>
+
+            <!-- Custom Date Range Form -->
+            <form action="" method="get"
+                class="flex items-center gap-2 bg-gray-50 p-1.5 rounded-lg border border-gray-200">
+                <input type="hidden" name="filter" value="custom">
+                <input type="date" name="start_date" value="{{ start_date|date:'Y-m-d' }}"
+                    class="bg-white border text-xs border-gray-200 rounded px-2 py-1.5 outline-none focus:border-blue-500 text-gray-600">
+                <span class="text-gray-400">-</span>
+                <input type="date" name="end_date" value="{{ end_date|date:'Y-m-d' }}"
+                    class="bg-white border text-xs border-gray-200 rounded px-2 py-1.5 outline-none focus:border-blue-500 text-gray-600">
+                <button type="submit"
+                    class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded text-xs font-bold transition-colors">
+                    Go
+                </button>
+            </form>
+        </div>
+
+        <div class="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500">
+            <p>Reporting Period: <span class="font-bold text-gray-800">{{ start_date|date:"M d, Y" }}</span> to <span
+                    class="font-bold text-gray-800">{{ end_date|date:"M d, Y" }}</span></p>
+            <a href="{% url 'printable_financial_report' %}?filter={{ filter_type }}&start_date={{ start_date|date:'Y-m-d' }}&end_date={{ end_date|date:'Y-m-d' }}"
+                target="_blank"
+                class="px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-900 shadow-sm transition-all flex items-center gap-2 font-medium">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z">
+                    </path>
+                </svg>
+                Professional Audit Report
+            </a>
+        </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Income -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-emerald-100 relative overflow-hidden group">
+            <div class="absolute right-0 top-0 h-full w-1 bg-emerald-500"></div>
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Revenue</h4>
+                    <p class="text-3xl font-bold text-emerald-600 mt-1">${{ report_data.income }}</p>
+                </div>
+                <div class="p-3 rounded-lg bg-emerald-50 text-emerald-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                        </path>
+                    </svg>
+                </div>
+            </div>
+            <p class="text-xs text-gray-400">Total collected from bookings</p>
+        </div>
+
+        <!-- Expenses -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-red-100 relative overflow-hidden group">
+            <div class="absolute right-0 top-0 h-full w-1 bg-red-500"></div>
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Expenses</h4>
+                    <p class="text-3xl font-bold text-red-600 mt-1">${{ report_data.expenses }}</p>
+                </div>
+                <div class="p-3 rounded-lg bg-red-50 text-red-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                    </svg>
+                </div>
+            </div>
+            <p class="text-xs text-gray-400">Approved operational costs</p>
+        </div>
+
+        <!-- Profit -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-blue-100 relative overflow-hidden group">
+            <div class="absolute right-0 top-0 h-full w-1 bg-blue-500"></div>
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Net Profit</h4>
+                    <p class="text-3xl font-bold text-blue-600 mt-1">${{ report_data.profit }}</p>
+                </div>
+                <div class="p-3 rounded-lg bg-blue-50 text-blue-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                        </path>
+                    </svg>
+                </div>
+            </div>
+            <p class="text-xs text-gray-400">Revenue minus expenses</p>
+        </div>
+
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+        <!-- Top Performing Rooms -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wide">Top Performing Rooms</h3>
+            </div>
+            <div class="p-4">
+                {% if report_data.top_rooms %}
+                <div class="space-y-4">
+                    {% for room in report_data.top_rooms %}
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="h-8 w-8 rounded bg-gray-100 flex items-center justify-center font-bold text-xs text-gray-600">
+                                {{ forloop.counter }}
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-gray-800">Room {{ room.room__room_number }}</p>
+                                <p class="text-xs text-gray-500">{{ room.room__room_type }}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm font-bold text-gray-800">{{ room.count }} Bookings</p>
+                            <!-- <p class="text-xs text-gray-500">${{ room.revenue }} est. rev</p> -->
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-center text-gray-400 text-sm py-8">No data available for this period</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Expense Breakdown can be here in future -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex justify-between items-center">
+                <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wide">Top Expenses</h3>
+            </div>
+            <div class="p-1">
+                <table class="w-full text-left text-xs">
+                    <thead class="text-gray-400 font-medium">
+                        <tr>
+                            <th class="px-4 py-2">Category</th>
+                            <th class="px-4 py-2">Title</th>
+                            <th class="px-4 py-2 text-right">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        {% for expense in report_data.expenses_list|slice:":5" %}
+                        <tr>
+                            <td class="px-4 py-3 text-gray-500">{{ expense.category }}</td>
+                            <td class="px-4 py-3 font-medium text-gray-800">{{ expense.title }}</td>
+                            <td class="px-4 py-3 text-right text-red-600 font-bold">${{ expense.amount }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center py-8 text-gray-400">No expenses recorded</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if report_data.expenses_list.count > 5 %}
+                <div class="p-3 text-center border-t border-gray-50">
+                    <a href="{% url 'expense_list' %}" class="text-xs text-blue-600 font-medium hover:underline">View
+                        All Expenses</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Guest Manifest / Migration Report -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-blue-50/30">
+            <div>
+                <h3 class="text-lg font-bold text-gray-800">Daily Migration Report</h3>
+                <p class="text-xs text-gray-500">Guest arrivals and occupancy for security manifest</p>
+            </div>
+            <a href="{% url 'guest_report' %}?filter={{ filter_type }}&start_date={{ start_date|date:'Y-m-d' }}&end_date={{ end_date|date:'Y-m-d' }}"
+                target="_blank"
+                class="px-3 py-1.5 bg-blue-600 text-white rounded text-xs font-bold hover:bg-blue-700 transition-colors flex items-center gap-2">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z">
+                    </path>
+                </svg>
+                Print Manifest
+            </a>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-gray-600">
+                <thead class="bg-gray-50 text-gray-700 uppercase text-[10px] font-bold">
+                    <tr>
+                        <th class="px-6 py-3">Guest Name</th>
+                        <th class="px-6 py-3">Phone</th>
+                        <th class="px-6 py-3">ID / Passport</th>
+                        <th class="px-6 py-3">Check In</th>
+                        <th class="px-6 py-3">Check Out</th>
+                        <th class="px-6 py-3 text-center">Room</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for booking in report_data.active_bookings %}
+                    <tr>
+                        <td class="px-6 py-4">
+                            <div class="font-bold text-gray-800">{{ booking.guest.full_name }}</div>
+                            <div class="text-[10px] text-gray-400 capitalize">{{ booking.guest.address|default:"-" }}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-xs">{{ booking.guest.phone_number }}</td>
+                        <td class="px-6 py-4 text-xs font-mono">{{ booking.guest.id_card|default:"-" }}</td>
+                        <td class="px-6 py-4 text-xs">{{ booking.check_in_date|date:"Y-m-d" }}</td>
+                        <td class="px-6 py-4 text-xs">{{ booking.check_out_date|date:"Y-m-d" }}</td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="px-2 py-1 bg-gray-100 rounded font-bold text-gray-700">{{
+                                booking.room.room_number }}</span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-12 text-center text-gray-400 italic">No guests matching this
+                            criteria found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Detailed Transactions Ledger -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+            <h3 class="text-lg font-bold text-gray-800">Financial Ledger</h3>
+            <span class="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">All payments & refunds</span>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-gray-600">
+                <thead class="bg-gray-50 text-gray-700 uppercase text-xs font-semibold">
+                    <tr>
+                        <th class="px-6 py-3">Date</th>
+                        <th class="px-6 py-3">Ref #</th>
+                        <th class="px-6 py-3">Booking / Context</th>
+                        <th class="px-6 py-3">Type</th>
+                        <th class="px-6 py-3">Method</th>
+                        <th class="px-6 py-3 text-right">Credit / Debit</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for p in report_data.payments %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4 text-xs font-mono text-gray-500">{{ p.date|date:"Y-m-d H:i" }}</td>
+                        <td class="px-6 py-4 text-xs font-mono text-gray-400">{{ p.reference_number|slice:":8" }}...
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex flex-col">
+                                <span class="font-bold text-gray-800">{{ p.booking.guest.full_name }}</span>
+                                <span class="text-xs text-gray-400">Booking #{{ p.booking.id }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="px-2 py-1 text-[10px] font-bold uppercase rounded
+                                {% if p.payment_type == 'Refund' %}bg-red-50 text-red-600 border border-red-100
+                                {% else %}bg-emerald-50 text-emerald-600 border border-emerald-100{% endif %}">
+                                {{ p.get_payment_type_display }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-xs">{{ p.get_payment_method_display }}</td>
+                        <td class="px-6 py-4 text-right">
+                            {% if p.payment_type == 'Refund' %}
+                            <span class="text-red-600 font-bold">-${{ p.amount }}</span>
+                            {% else %}
+                            <span class="text-emerald-600 font-bold">+${{ p.amount }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-12 text-center text-gray-400">
+                            <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01">
+                                </path>
+                            </svg>
+                            <p>No transactions found for this period</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

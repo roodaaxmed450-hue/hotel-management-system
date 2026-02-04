@@ -1,0 +1,125 @@
+{% extends 'hotel/base.html' %}
+
+{% block title %}Search Results{% endblock %}
+{% block header %}Search Results{% endblock %}
+
+{% block content %}
+<div class="space-y-8">
+
+    <!-- Search Query Display -->
+    <div class="bg-blue-50 border border-blue-100 p-4 rounded-lg flex items-center justify-between">
+        <p class="text-blue-800">
+            Showing results for "<span class="font-bold">{{ query }}</span>"
+        </p>
+        <span class="text-sm text-blue-600 font-medium">
+            {{ guests|length }} guest(s), {{ bookings|length }} booking(s) found
+        </span>
+    </div>
+
+    <!-- Guests Results -->
+    <div class="space-y-4">
+        <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z">
+                </path>
+            </svg>
+            Guests
+        </h3>
+        {% if guests %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for guest in guests %}
+            <a href="{% url 'edit_guest' guest.id %}"
+                class="block bg-white p-6 rounded-lg shadow-sm border border-gray-100 hover:border-blue-300 hover:shadow-md transition-all group">
+                <div class="flex items-center justify-between mb-2">
+                    <h4 class="font-bold text-gray-800 group-hover:text-blue-600 truncate">{{ guest.full_name }}</h4>
+                    <span class="text-xs font-semibold px-2 py-1 bg-gray-100 text-gray-600 rounded">ID: {{ guest.id
+                        }}</span>
+                </div>
+                <div class="text-sm text-gray-500 space-y-1">
+                    <p class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z">
+                            </path>
+                        </svg>
+                        {{ guest.phone_number }}
+                    </p>
+                    {% if guest.id_card %}
+                    <p class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0c0 .884-.5 2-2 2h4c-1.5 0-2-1.116-2-2z">
+                            </path>
+                        </svg>
+                        {{ guest.id_card }}
+                    </p>
+                    {% endif %}
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-sm text-gray-400 italic bg-gray-50 p-4 rounded">No guests found matching "{{ query }}"</p>
+        {% endif %}
+    </div>
+
+    <!-- Booking Results -->
+    <div class="space-y-4">
+        <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+            Bookings
+        </h3>
+        {% if bookings %}
+        <div class="overflow-x-auto bg-white rounded-lg shadow-sm border border-gray-100">
+            <table class="w-full text-left text-sm text-gray-600">
+                <thead class="bg-gray-50 text-gray-700 uppercase text-xs font-semibold">
+                    <tr>
+                        <th class="px-6 py-3">ID</th>
+                        <th class="px-6 py-3">Guest</th>
+                        <th class="px-6 py-3">Room</th>
+                        <th class="px-6 py-3">Dates</th>
+                        <th class="px-6 py-3">Status</th>
+                        <th class="px-6 py-3 text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for booking in bookings %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4 font-mono font-medium text-gray-500">#{{ booking.id }}</td>
+                        <td class="px-6 py-4 font-semibold text-gray-900">{{ booking.guest.full_name }}</td>
+                        <td class="px-6 py-4 text-gray-600">
+                            Room {{ booking.room.room_number }} <span class="text-xs text-gray-400">({{
+                                booking.room.room_type }})</span>
+                        </td>
+                        <td class="px-6 py-4 text-gray-500">
+                            {{ booking.check_in_date|date:"M d" }} - {{ booking.check_out_date|date:"M d, Y" }}
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="px-2 py-1 rounded text-xs font-bold uppercase
+                                {% if booking.status == 'Confirmed' %}bg-blue-100 text-blue-700
+                                {% elif booking.status == 'Checked-In' %}bg-green-100 text-green-700
+                                {% elif booking.status == 'Checked-Out' %}bg-gray-100 text-gray-700
+                                {% else %}bg-orange-100 text-orange-700{% endif %}">
+                                {{ booking.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <a href="{% url 'booking_detail' booking.id %}"
+                                class="text-blue-600 hover:text-blue-800 font-medium text-xs uppercase tracking-wide">View</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-sm text-gray-400 italic bg-gray-50 p-4 rounded">No bookings found matching "{{ query }}"</p>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}
