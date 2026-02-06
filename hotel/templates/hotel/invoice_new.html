@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice #{{ invoice.invoice_number }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+
+            body {
+                background: white;
+            }
+
+            .invoice-container {
+                box-shadow: none;
+                padding: 0;
+                margin: 0;
+                width: 100%;
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 p-8 min-h-screen flex justify-center items-start print:p-0 print:bg-white">
+
+    <!-- Invoice Container (A4 Ratio roughly) -->
+    <div class="invoice-container bg-white shadow-xl w-[210mm] min-h-[297mm] p-12 relative flex flex-col text-gray-800">
+
+        <!-- Watermark/Background Decoration -->
+        <div
+            class="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-bl-[100%] -z-10 opacity-50 print:opacity-20 pointer-events-none">
+        </div>
+
+        <!-- Header Section -->
+        <header class="flex justify-between items-start mb-12 border-b border-gray-100 pb-8">
+            <div class="flex items-center gap-4">
+                <!-- Logo Placeholder -->
+                <div
+                    class="w-16 h-16 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-2xl">
+                    KH
+                </div>
+                <div>
+                    <h2 class="text-2xl font-bold tracking-tight text-gray-900">KHEYRE HOTEL</h2>
+                    <p class="text-xs text-blue-600 font-semibold uppercase tracking-wider">Management System</p>
+                </div>
+            </div>
+
+            <div class="text-right">
+                <h1 class="text-4xl font-light text-gray-900 mb-2">INVOICE</h1>
+                <p class="text-sm text-gray-500 font-mono">#{{ invoice.invoice_number }}</p>
+                <div class="mt-4 space-y-1 text-sm text-gray-600">
+                    <p>123 Hotel Main Road</p>
+                    <p>Mogadishu, Somalia</p>
+                    <p>+252 61 5000000</p>
+                    <p>billing@kheyrehotel.com</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Billing Info Grid -->
+        <div class="grid grid-cols-2 gap-12 mb-12">
+            <div>
+                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Bill To</h3>
+                <div class="text-sm">
+                    <p class="font-bold text-lg text-gray-900 mb-1">{{ invoice.booking.guest.full_name }}</p>
+                    <p class="text-gray-600">{{ invoice.booking.guest.address|default:"Address on File" }}</p>
+                    <p class="text-gray-600">{{ invoice.booking.guest.phone_number }}</p>
+                    <p class="text-gray-600 mt-2"><span class="font-medium text-gray-400">Guest ID:</span>
+                        {{ invoice.booking.guest.id_card|default:"N/A" }}</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Invoice Date</h3>
+                    <p class="text-sm font-medium text-gray-900">{{ invoice.issued_date|date:"F d, Y" }}</p>
+                </div>
+                <div>
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Booking Ref</h3>
+                    <p class="text-sm font-medium text-gray-900">#{{ invoice.booking.id }}</p>
+                </div>
+                <div>
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Check In</h3>
+                    <p class="text-sm font-medium text-gray-900">{{ invoice.booking.check_in_date|date:"M d, Y" }}</p>
+                </div>
+                <div>
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Check Out</h3>
+                    <p class="text-sm font-medium text-gray-900">{{ invoice.booking.check_out_date|date:"M d, Y" }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Line Items Table -->
+        <div class="mb-12">
+            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Charges Breakdown</h3>
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="border-b border-gray-200">
+                        <th class="py-3 px-2 text-xs font-semibold text-gray-600 uppercase w-1/2">Description</th>
+                        <th class="py-3 px-2 text-xs font-semibold text-gray-600 uppercase text-center">Rate</th>
+                        <th class="py-3 px-2 text-xs font-semibold text-gray-600 uppercase text-center">Qty/Nights</th>
+                        <th class="py-3 px-2 text-xs font-semibold text-gray-600 uppercase text-right">Amount</th>
+                    </tr>
+                </thead>
+                <tbody class="text-sm text-gray-700">
+                    <!-- Accommodation Charge -->
+                    <tr class="border-b border-gray-50">
+                        <td class="py-4 px-2">
+                            <p class="font-bold text-gray-900">Accommodation Charge</p>
+                            <p class="text-gray-500 text-xs mt-1">
+                                Room {{ invoice.booking.room.room_number }} ({{
+                                invoice.booking.room.get_room_type_display }})
+                            </p>
+                        </td>
+                        <td class="py-4 px-2 text-center text-gray-600">${{ invoice.booking.room_rate }}</td>
+                        <td class="py-4 px-2 text-center text-gray-600">
+                            {% if invoice.booking.status == 'Checked-Out' %}
+                            {{
+                            invoice.booking.get_actual_total|divisibleby:invoice.booking.room_rate|yesno:"??,Variable"
+                            }}
+                            <!-- Complex logic needed to show exact nights, simplifying for display: -->
+                            Calc.
+                            {% else %}
+                            {{ invoice.booking.check_out_date|timeuntil:invoice.booking.check_in_date }}
+                            {% endif %}
+                        </td>
+                        <td class="py-4 px-2 text-right font-medium text-gray-900">
+                            <!-- We use total amount here directly as logic is complex in template -->
+                            ${{ invoice.booking.get_estimated_total|add:invoice.booking.discount }}
+                            <!-- Note: get_estimated_total normally subtracts discount, so we add it back to show Gross -->
+                        </td>
+                    </tr>
+
+                    {% for charge in invoice.booking.additional_charges.all %}
+                    <tr class="border-b border-gray-50 bg-gray-50/20">
+                        <td class="py-4 px-2">
+                            <p class="font-bold text-gray-800">{{ charge.get_charge_type_display }}</p>
+                            <p class="text-gray-500 text-xs mt-1">{{ charge.description }}</p>
+                        </td>
+                        <td class="py-4 px-2 text-center text-gray-600">${{ charge.amount }}</td>
+                        <td class="py-4 px-2 text-center text-gray-600">1</td>
+                        <td class="py-4 px-2 text-right font-medium text-gray-900">${{ charge.amount }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Financial Summary -->
+        <div class="flex justify-end mb-12">
+            <div class="w-1/2 lg:w-1/3 space-y-3">
+                <div class="flex justify-between text-sm text-gray-600">
+                    <span>Subtotal</span>
+                    <span class="font-medium">${{ invoice.booking.get_estimated_total|add:invoice.booking.discount
+                        }}</span>
+                </div>
+
+                {% if invoice.booking.discount > 0 %}
+                <div class="flex justify-between text-sm text-green-600">
+                    <span>Discount Applied</span>
+                    <span class="font-medium">- ${{ invoice.booking.discount }}</span>
+                </div>
+                {% endif %}
+
+                <div class="flex justify-between text-sm font-bold text-gray-900 border-t border-gray-200 pt-3">
+                    <span>Total Amount</span>
+                    <span>${{ invoice.total_amount }}</span>
+                </div>
+
+                <div class="flex justify-between text-sm text-gray-600 mt-4">
+                    <span>Total Paid</span>
+                    <span>- ${{ invoice.amount_paid }}</span>
+                </div>
+
+                <div class="flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-200 mt-4">
+                    <span class="text-base font-bold text-gray-800">Balance Due</span>
+                    <span
+                        class="text-xl font-bold {% if invoice.balance > 0 %}text-red-600{% else %}text-green-600{% endif %}">
+                        ${{ invoice.balance }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment History (Small) -->
+        {% if invoice.booking.payments.all %}
+        <div class="mb-12">
+            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Payment History</h3>
+            <div class="bg-gray-50 rounded-lg p-4 text-xs">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="text-gray-500 border-b border-gray-200">
+                            <th class="pb-2">Date</th>
+                            <th class="pb-2">Method</th>
+                            <th class="pb-2">Reference</th>
+                            <th class="pb-2 text-right">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        {% for payment in invoice.booking.payments.all %}
+                        <tr class="border-b border-gray-100 last:border-0">
+                            <td class="py-2">{{ payment.date|date:"M d, Y" }}</td>
+                            <td class="py-2">{{ payment.get_payment_method_display }}</td>
+                            <td class="py-2 font-mono text-gray-500">{{ payment.reference_number }}</td>
+                            <td class="py-2 text-right font-medium">${{ payment.amount }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Footer -->
+        <div class="mt-auto pt-8 border-t border-gray-200 flex justify-between items-end">
+            <div class="text-xs text-gray-500 max-w-sm">
+                <p class="font-bold text-gray-700 mb-1">Terms & Conditions</p>
+                <p>Payment is due upon receipt. Please include invoice number on your check. Thank you for your
+                    business.</p>
+            </div>
+            <div class="text-center">
+                <div class="h-12 border-b border-gray-300 w-48 mb-2"></div>
+                <p class="text-xs text-gray-400 uppercase tracking-widest">Authorized Signature</p>
+            </div>
+        </div>
+
+        <!-- Print Controls -->
+        <div class="no-print fixed bottom-8 right-8 flex gap-4">
+            <button onclick="window.close()"
+                class="bg-gray-100 text-gray-700 px-6 py-3 rounded-full shadow-lg hover:bg-gray-200 font-medium transition-transform hover:scale-105 active:scale-95">
+                Close
+            </button>
+            <button onclick="window.print()"
+                class="bg-blue-600 text-white px-8 py-3 rounded-full shadow-lg hover:bg-blue-700 font-bold transition-transform hover:scale-105 active:scale-95 flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z">
+                    </path>
+                </svg>
+                Print Invoice
+            </button>
+        </div>
+
+    </div>
+</body>
+
+</html>

@@ -6,59 +6,96 @@
 {% block content %}
 <div class="space-y-6">
     <!-- Stats Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+        <!-- Today's Income -->
+        <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-semibold text-gray-400 uppercase">Monthly Revenue</span>
-                <span class="p-2 bg-blue-50 text-blue-600 rounded-md">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Today's Income</span>
+                <span class="p-1.5 bg-green-50 text-green-600 rounded">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 8c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3zM12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2z">
                         </path>
                     </svg>
                 </span>
             </div>
-            <div class="text-2xl font-bold text-gray-800">${{ monthly_income }}</div>
+            <div class="text-xl font-bold text-gray-800">${{ todays_income }}</div>
         </div>
 
-        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+        <!-- Occupied Rooms -->
+        <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-semibold text-gray-400 uppercase">Monthly Expenses</span>
-                <span class="p-2 bg-red-50 text-red-600 rounded-md">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Occupied</span>
+                <span class="p-1.5 bg-blue-50 text-blue-600 rounded">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
+                        </path>
                     </svg>
                 </span>
             </div>
-            <div class="text-2xl font-bold text-gray-800">${{ monthly_expenses }}</div>
+            <div class="text-xl font-bold text-gray-800">{{ occupied_rooms }}<span
+                    class="text-xs text-gray-400 font-normal ml-1">/{{ total_rooms }}</span></div>
         </div>
 
-        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+        <!-- Pending Expenses -->
+        <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-semibold text-gray-400 uppercase">Estimated Profit</span>
-                <span class="p-2 bg-green-50 text-green-600 rounded-md">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Pending Appr.</span>
+                <span
+                    class="p-1.5 {% if pending_expenses > 0 %}bg-orange-50 text-orange-600{% else %}bg-gray-50 text-gray-400{% endif %} rounded">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </span>
+            </div>
+            <div
+                class="text-xl font-bold {% if pending_expenses > 0 %}text-orange-600{% else %}text-gray-800{% endif %}">
+                {{ pending_expenses }}</div>
+        </div>
+
+        <!-- Monthly Profit -->
+        <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Monthly Profit</span>
+                <span class="p-1.5 bg-indigo-50 text-indigo-600 rounded">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
                     </svg>
                 </span>
             </div>
-            <div class="text-2xl font-bold text-gray-800">${{ net_profit }}</div>
+            <div class="text-xl font-bold text-gray-800">${{ net_profit }}</div>
         </div>
 
-        <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100">
+        <!-- Monthly Income -->
+        <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-semibold text-gray-400 uppercase">Total Bookings</span>
-                <span class="p-2 bg-purple-50 text-purple-600 rounded-md">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Monthly Income</span>
+                <span class="p-1.5 bg-blue-50 text-blue-600 rounded">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                            d="M12 8c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3zM12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2z">
                         </path>
                     </svg>
                 </span>
             </div>
-            <div class="text-2xl font-bold text-gray-800">{{ bookings_count }}</div>
+            <div class="text-xl font-bold text-gray-800">${{ monthly_income }}</div>
+        </div>
+
+        <!-- Monthly Expenses -->
+        <div class="bg-white p-5 rounded-lg shadow-sm border border-gray-100">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Approved Exp.</span>
+                <span class="p-1.5 bg-red-50 text-red-600 rounded">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </span>
+            </div>
+            <div class="text-xl font-bold text-gray-800">${{ monthly_expenses }}</div>
         </div>
     </div>
 
@@ -82,7 +119,8 @@
                         <span class="font-semibold">{{ status.count }}</span>
                     </div>
                     <div class="w-full bg-gray-100 rounded-full h-2">
-                        <div class="bg-blue-600 h-2 rounded-full" style="width: {{ status.percentage }}%"></div>
+                        <div class="room-progress-bar bg-blue-600 h-2 rounded-full"
+                            data-percentage="{{ status.percentage|default:0 }}"></div>
                     </div>
                 </div>
                 {% endfor %}
@@ -113,7 +151,8 @@
                             <div class="text-xs text-gray-500">{{ booking.guest.phone_number }}</div>
                         </td>
                         <td class="px-6 py-4">Room {{ booking.room.room_number }}</td>
-                        <td class="px-6 py-4">{{ booking.check_in_date|date:"M d" }} - {{ booking.check_out_date|date:"M d" }}</td>
+                        <td class="px-6 py-4">{{ booking.check_in_date|date:"M d" }} - {{ booking.check_out_date|date:"M
+                            d" }}</td>
                         <td class="px-6 py-4">
                             <span class="px-2 py-1 rounded-full text-[10px] font-bold uppercase
                                 {% if booking.status == 'Confirmed' %}bg-blue-100 text-blue-700
@@ -129,33 +168,70 @@
             </table>
         </div>
     </div>
+
+    {{ chart_labels|json_script:"chart-labels-data" }}
+    {{ chart_income|json_script:"chart-income-data" }}
+    {{ chart_expenses|json_script:"chart-expenses-data" }}
 </div>
 
 <script>
-    const ctx = document.getElementById('performanceChart').getContext('2d');
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: {{ chart_labels| safe }},
-        datasets: [{
-            label: 'Income',
-            data: {{ chart_income| safe }},
-        borderColor: '#3B82F6',
-        tension: 0.4,
-        fill: false
-            }, {
-            label: 'Expenses',
-            data: {{ chart_expenses| safe }},
-        borderColor: '#EF4444',
-        tension: 0.4,
-        fill: false
-            }]
-        },
-        options: {
-        maintainAspectRatio: false,
-        plugins: { legend: { position: 'bottom' } },
-        scales: { y: { beginAtZero: true } }
-    }
+    document.addEventListener('DOMContentLoaded', function () {
+        // Apply room status percentages
+        document.querySelectorAll('.room-progress-bar').forEach(bar => {
+            bar.style.width = (bar.dataset.percentage || 0) + '%';
+        });
+
+        // Read data safely from json_script elements
+        const labelsData = JSON.parse(document.getElementById('chart-labels-data').textContent);
+        const incomeData = JSON.parse(document.getElementById('chart-income-data').textContent);
+        const expensesData = JSON.parse(document.getElementById('chart-expenses-data').textContent);
+
+        const ctx = document.getElementById('performanceChart').getContext('2d');
+        const chartData = {
+            labels: labelsData || [],
+            datasets: [
+                {
+                    label: 'Income',
+                    data: incomeData || [],
+                    borderColor: '#3B82F6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                },
+                {
+                    label: 'Expenses',
+                    data: expensesData || [],
+                    borderColor: '#EF4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }
+            ]
+        };
+
+        new Chart(ctx, {
+            type: 'line',
+            data: chartData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function (value) {
+                                return '$' + value;
+                            }
+                        }
+                    }
+                }
+            }
+        });
     });
 </script>
 {% endblock %}

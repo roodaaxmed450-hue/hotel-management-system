@@ -67,20 +67,21 @@ def admin_dashboard(request):
         'maintenance_rooms': maintenance_count,
         'occupancy_rate': round(occupancy_rate, 1),
         'todays_income': todays_income,
+        'total_expenses': total_expenses,
+        'pending_expenses': pending_expenses,
         'monthly_income': monthly_income,
         'monthly_expenses': monthly_expenses,
         'net_profit': monthly_profit,
         'bookings_count': Booking.objects.filter(booking_date__month=today.month, booking_date__year=today.year).count(),
-        'pending_expenses': pending_expenses,
         'chart_labels': chart_labels,
         'chart_income': income_data,
         'chart_expenses': expense_data,
         'recent_bookings': recent_bookings,
         'room_status_counts': [
-            {'status': 'Available', 'count': available_count, 'percentage': (available_count/total_rooms*100) if total_rooms > 0 else 0},
-            {'status': 'Occupied', 'count': occupied_count, 'percentage': (occupied_count/total_rooms*100) if total_rooms > 0 else 0},
-            {'status': 'Booked', 'count': booked_count, 'percentage': (booked_count/total_rooms*100) if total_rooms > 0 else 0},
-            {'status': 'Maintenance', 'count': maintenance_count, 'percentage': (maintenance_count/total_rooms*100) if total_rooms > 0 else 0},
+            {'status': 'Available', 'count': available_count, 'percentage': round((available_count/total_rooms*100), 1) if total_rooms > 0 else 0},
+            {'status': 'Occupied', 'count': occupied_count, 'percentage': round((occupied_count/total_rooms*100), 1) if total_rooms > 0 else 0},
+            {'status': 'Booked', 'count': booked_count, 'percentage': round((booked_count/total_rooms*100), 1) if total_rooms > 0 else 0},
+            {'status': 'Maintenance', 'count': maintenance_count, 'percentage': round((maintenance_count/total_rooms*100), 1) if total_rooms > 0 else 0},
         ]
     }
     return render(request, 'hotel/admin_dashboard.html', context)
@@ -709,10 +710,13 @@ def permanent_delete_item(request, item_type, item_id):
     
     model = model_map.get(item_type)
     if model:
-        obj = get_object_or_404(model.objects.deleted(), id=item_id)
-        obj.delete()
-        messages.success(request, f'{item_type} permanently deleted.')
-    
+        from django.db.models import ProtectedError
+        try:
+            obj = get_object_or_404(model.objects.deleted(), id=item_id)
+            obj.delete()
+            messages.success(request, f'{item_type} permanently deleted.')
+        except ProtectedError:
+            messages.error(request, f'Financial Audit Lock: Cannot permanently delete this {item_type} because it is linked to other records (like payments or bookings) that are required for the financial ledger.')
     
     return redirect('recycle_bin')
 

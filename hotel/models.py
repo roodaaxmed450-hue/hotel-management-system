@@ -82,8 +82,8 @@ class Booking(SoftDeleteModel):
         ('No-Show', 'No-Show'),
         ('Cancelled', 'Cancelled'),
     )
-    guest = models.ForeignKey(Guest, on_delete=models.CASCADE, related_name='bookings')
-    room = models.ForeignKey(Room, on_delete=models.CASCADE, related_name='bookings')
+    guest = models.ForeignKey(Guest, on_delete=models.PROTECT, related_name='bookings')
+    room = models.ForeignKey(Room, on_delete=models.PROTECT, related_name='bookings')
     
     # Planned dates (for reservation)
     check_in_date = models.DateField()
@@ -172,12 +172,16 @@ class Booking(SoftDeleteModel):
         return sum(p.amount for p in self.payments.filter(payment_type='Refund'))
     
     def get_balance(self):
-        """Current balance"""
-        if self.status == 'Checked-Out':
-            total = self.get_actual_total()
-        else:
-            total = self.get_estimated_total()
+        """Current balance (Rent + Services - Paid)"""
+        if self.status == 'Cancelled':
+            return 0
+            
+        # We always use get_actual_total() for balance calculation because 
+        # it correctly handles both estimated rent (pre-checkout) and 
+        # actual rent (post-checkout) while always including additional charges.
+        total = self.get_actual_total()
         
+        # Deduct total paid and net discounts
         return total - self.get_total_paid() - (self.get_total_discounted() - self.discount) + self.get_total_refunded()
     
     def get_payment_status(self):
@@ -203,7 +207,7 @@ class Booking(SoftDeleteModel):
         return f"Booking {self.id} - {self.guest.full_name}"
 
 class Invoice(models.Model):
-    booking = models.OneToOneField(Booking, on_delete=models.CASCADE, related_name='invoice')
+    booking = models.OneToOneField(Booking, on_delete=models.PROTECT, related_name='invoice')
     invoice_number = models.CharField(max_length=50, unique=True, blank=True)
     issued_date = models.DateTimeField(auto_now_add=True)
     
@@ -215,9 +219,11 @@ class Invoice(models.Model):
     
     @property
     def total_amount(self):
-        if self.booking.status in ['Checked-In', 'Checked-Out']:
-            return self.booking.get_actual_total()
-        return self.booking.get_estimated_total()
+        # We always use get_actual_total for non-cancelled invoices 
+        # to ensure room service and other charges are always visible.
+        if self.booking.status == 'Cancelled':
+            return 0
+        return self.booking.get_actual_total()
     
     @property
     def amount_paid(self):
@@ -250,7 +256,7 @@ class Payment(SoftDeleteModel):
         ('Card', 'Credit/Debit Card'),
     )
     
-    booking = models.ForeignKey(Booking, related_name='payments', on_delete=models.CASCADE)
+    booking = models.ForeignKey(Booking, related_name='payments', on_delete=models.PROTECT)
     payment_type = models.CharField(max_length=20, choices=PAYMENT_TYPE_CHOICES, default='Payment')
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHODS, null=True, blank=True)
@@ -301,7 +307,7 @@ class AdditionalCharge(models.Model):
         ('Other', 'Other'),
     )
     
-    booking = models.ForeignKey(Booking, related_name='additional_charges', on_delete=models.CASCADE)
+    booking = models.ForeignKey(Booking, related_name='additional_charges', on_delete=models.PROTECT)
     charge_type = models.CharField(max_length=50, choices=CHARGE_TYPE_CHOICES)
     description = models.CharField(max_length=200)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
