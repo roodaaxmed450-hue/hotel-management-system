@@ -1,3 +1,4 @@
+{# Django Template - This file contains Django template tags that will be processed server-side #}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -5,262 +6,483 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Financial Audit Report - {{ start_date|date:"Y-m-d" }}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Outfit', sans-serif;
-            print-color-adjust: exact;
-            -webkit-print-color-adjust: exact;
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 11pt;
+            line-height: 1.4;
+            color: #000;
+            background: #fff;
+            padding: 0.5in;
         }
 
         @media print {
+            body {
+                padding: 0;
+            }
+
             .no-print {
                 display: none !important;
             }
 
-            body {
-                background: white;
-                padding: 0;
+            .page-break {
+                page-break-after: always;
             }
 
-            .main-container {
-                box-shadow: none !important;
-                padding: 0 !important;
-                margin: 0 !important;
-                max-width: 100% !important;
-                width: 100% !important;
+            table {
+                page-break-inside: auto;
             }
+
+            tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 20pt;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+
+        .header .subtitle {
+            font-size: 10pt;
+            margin-bottom: 3px;
+        }
+
+        .header .report-title {
+            font-size: 14pt;
+            font-weight: bold;
+            margin-top: 10px;
+            text-decoration: underline;
+        }
+
+        .meta-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            font-size: 10pt;
+            border: 1px solid #000;
+            padding: 10px;
+        }
+
+        .meta-info div {
+            flex: 1;
+        }
+
+        .meta-info strong {
+            font-weight: bold;
+        }
+
+        .summary-section {
+            margin-bottom: 30px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .summary-box {
+            border: 2px solid #000;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .summary-box .label {
+            font-size: 9pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+        }
+
+        .summary-box .value {
+            font-size: 18pt;
+            font-weight: bold;
+        }
+
+        .section-title {
+            font-size: 12pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-bottom: 2px solid #000;
+            padding-bottom: 5px;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            font-size: 10pt;
+        }
+
+        table th {
+            background: #000;
+            color: #fff;
+            padding: 8px;
+            text-align: left;
+            font-weight: bold;
+            font-size: 9pt;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        table td {
+            border: 1px solid #000;
+            padding: 6px 8px;
+        }
+
+        table tbody tr:nth-child(even) {
+            background: #f5f5f5;
+        }
+
+        table tbody tr:hover {
+            background: #e8e8e8;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .font-bold {
+            font-weight: bold;
+        }
+
+        .font-mono {
+            font-family: 'Courier New', monospace;
+        }
+
+        .certification {
+            margin-top: 40px;
+            border-top: 2px solid #000;
+            padding-top: 20px;
+        }
+
+        .signature-section {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 50px;
+        }
+
+        .signature-box {
+            width: 45%;
+        }
+
+        .signature-line {
+            border-top: 1px solid #000;
+            margin-top: 50px;
+            padding-top: 5px;
+            text-align: center;
+            font-size: 9pt;
+            font-weight: bold;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 8pt;
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid #000;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 30px;
+            font-style: italic;
+            color: #666;
         }
     </style>
 </head>
 
-<body class="bg-gray-100 min-h-screen p-4 sm:p-12 print:p-0">
-
-    <div id="report-content"
-        class="main-container max-w-5xl mx-auto bg-white shadow-2xl rounded-2xl overflow-hidden print:shadow-none print:rounded-none">
-
+<body>
+    <div id="report-content">
         <!-- Header -->
-        <div
-            class="bg-indigo-950 text-white p-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden">
-            <div class="absolute top-0 right-0 w-96 h-96 bg-indigo-500/10 rounded-full -mr-48 -mt-48"></div>
-            <div class="relative z-10">
-                <div class="flex items-center gap-4 mb-4">
-                    <div
-                        class="w-12 h-12 bg-white text-indigo-950 rounded-xl flex items-center justify-center font-bold text-2xl shadow-xl shadow-indigo-900/50">
-                        KH</div>
-                    <div>
-                        <h1 class="text-3xl font-bold tracking-tight">KHEYRE HOTEL</h1>
-                        <p class="text-indigo-300 text-xs font-bold uppercase tracking-widest">Financial Audit Report
-                        </p>
-                    </div>
-                </div>
-                <div class="flex gap-8">
-                    <div class="bg-indigo-900/40 p-3 rounded-lg border border-indigo-800">
-                        <p class="text-[10px] text-indigo-400 font-bold uppercase mb-1">Audit Period</p>
-                        <p class="text-sm font-medium text-indigo-100">{{ start_date|date:"M d, Y" }} — {{
-                            end_date|date:"M d, Y" }}</p>
-                    </div>
-                    <div class="bg-indigo-900/40 p-3 rounded-lg border border-indigo-800">
-                        <p class="text-[10px] text-indigo-400 font-bold uppercase mb-1">Generated At</p>
-                        <p class="text-sm font-medium text-indigo-100">{% now "M d, Y H:i" %}</p>
-                    </div>
-                </div>
+        <div class="header">
+            <h1>KHEYRE HOTEL</h1>
+            <div class="subtitle">Mogadishu, Somalia</div>
+            <div class="subtitle">Hotel Management System</div>
+            <div class="report-title">FINANCIAL AUDIT REPORT</div>
+        </div>
+
+        <!-- Meta Information -->
+        <div class="meta-info">
+            <div>
+                <strong>Audit Period:</strong><br>
+                {{ start_date|date:"M d, Y" }} — {{ end_date|date:"M d, Y" }}
             </div>
-            <div class="text-right relative z-10">
-                <div
-                    class="inline-block px-4 py-2 bg-emerald-500 text-white rounded-full font-bold text-xs uppercase tracking-widest">
-                    Verified Statement</div>
-                <p class="text-indigo-400 text-[10px] mt-4 font-mono">MD-{{ start_date|date:"Ymd" }}-FAP</p>
+            <div>
+                <strong>Report Generated:</strong><br>
+                {% now "M d, Y H:i" %}
+            </div>
+            <div>
+                <strong>Reference No:</strong><br>
+                FAR-{{ start_date|date:"Ymd" }}
             </div>
         </div>
 
-        <div class="p-10">
-            <!-- Summary Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-                <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100 relative overflow-hidden group">
-                    <div class="absolute left-0 top-0 h-full w-1.5 bg-emerald-500"></div>
-                    <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Total Gross Revenue
-                    </h4>
-                    <p class="text-3xl font-bold text-slate-900">${{ report_data.income }}</p>
+        <!-- Financial Summary -->
+        <div class="summary-section">
+            <div class="section-title">Financial Summary</div>
+            <div class="summary-grid">
+                <div class="summary-box">
+                    <div class="label">Total Revenue</div>
+                    <div class="value">${{ report_data.income }}</div>
                 </div>
-                <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100 relative overflow-hidden group">
-                    <div class="absolute left-0 top-0 h-full w-1.5 bg-red-500"></div>
-                    <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Approved Expenses
-                    </h4>
-                    <p class="text-3xl font-bold text-slate-900">${{ report_data.expenses }}</p>
+                <div class="summary-box">
+                    <div class="label">Total Expenses</div>
+                    <div class="value">${{ report_data.expenses }}</div>
                 </div>
-                <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100 relative overflow-hidden group">
-                    <div class="absolute left-0 top-0 h-full w-1.5 bg-blue-500"></div>
-                    <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Net Financial
-                        Position</h4>
-                    <p class="text-3xl font-bold text-slate-900">${{ report_data.profit }}</p>
-                </div>
-            </div>
-
-            <!-- Revenue Table -->
-            <div class="mb-12">
-                <div class="flex items-center gap-3 mb-4 border-b border-emerald-50 pb-2">
-                    <div class="p-1.5 bg-emerald-50 text-emerald-600 rounded-md">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
-                            </path>
-                        </svg>
-                    </div>
-                    <h3 class="text-sm font-bold text-slate-800 uppercase tracking-widest">Revenue Streams (Income)</h3>
-                </div>
-                <div class="rounded-xl border border-slate-100 overflow-hidden shadow-sm">
-                    <table class="w-full text-left text-sm">
-                        <thead>
-                            <tr class="bg-slate-900 text-white uppercase text-[9px] font-bold">
-                                <th class="px-4 py-3 w-12 text-center">#</th>
-                                <th class="px-4 py-3">Transaction Date</th>
-                                <th class="px-4 py-3">Source / Customer</th>
-                                <th class="px-4 py-3">Mode</th>
-                                <th class="px-4 py-3 text-right">Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100">
-                            {% for p in report_data.payments %}
-                            <tr>
-                                <td class="px-4 py-3 text-center text-slate-400 font-mono text-xs">{{ forloop.counter }}
-                                </td>
-                                <td class="px-4 py-3 font-mono text-xs text-slate-500">{{ p.date|date:"Y-m-d H:i" }}
-                                </td>
-                                <td class="px-4 py-3">
-                                    <p class="font-bold text-slate-800">{{ p.booking.guest.full_name }}</p>
-                                    <p class="text-[10px] text-slate-400">Booking #{{ p.booking.id }}</p>
-                                </td>
-                                <td class="px-4 py-3 text-xs text-slate-600">{{ p.get_payment_method_display }}</td>
-                                <td class="px-4 py-3 text-right font-bold text-emerald-600 font-mono">${{ p.amount }}
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="5" class="px-4 py-12 text-center text-slate-300 italic text-xs">No revenue
-                                    recorded in this cycle</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Expense Table -->
-            <div class="mb-12">
-                <div class="flex items-center gap-3 mb-4 border-b border-red-50 pb-2">
-                    <div class="p-1.5 bg-red-50 text-red-600 rounded-md">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-                        </svg>
-                    </div>
-                    <h3 class="text-sm font-bold text-slate-800 uppercase tracking-widest">Expenditure (Outflow)</h3>
-                </div>
-                <div class="rounded-xl border border-slate-100 overflow-hidden shadow-sm">
-                    <table class="w-full text-left text-sm">
-                        <thead>
-                            <tr class="bg-red-950 text-white uppercase text-[9px] font-bold">
-                                <th class="px-4 py-3 w-12 text-center">#</th>
-                                <th class="px-4 py-3">Expense Date</th>
-                                <th class="px-4 py-3">Ledger Category</th>
-                                <th class="px-4 py-3">Description</th>
-                                <th class="px-4 py-3 text-right">Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-100">
-                            {% for e in report_data.expenses_list %}
-                            <tr>
-                                <td class="px-4 py-3 text-center text-slate-400 font-mono text-xs">{{ forloop.counter }}
-                                </td>
-                                <td class="px-4 py-3 font-mono text-xs text-slate-500">{{ e.date|date:"Y-m-d" }}</td>
-                                <td class="px-4 py-3 font-bold text-slate-700 text-xs uppercase">{{ e.category }}</td>
-                                <td class="px-4 py-3 text-slate-500 text-xs">{{ e.title }}</td>
-                                <td class="px-4 py-3 text-right font-bold text-red-600 font-mono">-${{ e.amount }}</td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="5" class="px-4 py-12 text-center text-slate-300 italic text-xs">No expenses
-                                    recorded in this cycle</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Certification Section -->
-            <div
-                class="mt-20 pt-10 border-t-2 border-slate-50 flex flex-col md:flex-row justify-between items-start md:items-end gap-12">
-                <div class="text-[10px] text-slate-400 uppercase tracking-[0.2em] leading-loose">
-                    <p class="font-black text-slate-900 mb-2">Statement Certification</p>
-                    <p>I hereby certify that this report accurately reflects the financial state</p>
-                    <p>of Kheyre Hotel for the above mentioned period.</p>
-                </div>
-                <div class="text-center">
-                    <div class="h-16 border-b-2 border-slate-100 w-64 mb-4"></div>
-                    <p class="text-[10px] uppercase font-bold text-slate-400">Finance Director Signature</p>
+                <div class="summary-box">
+                    <div class="label">Net Position</div>
+                    <div class="value">${{ report_data.profit }}</div>
                 </div>
             </div>
         </div>
 
-        <div
-            class="bg-slate-50 p-6 text-center text-[10px] text-slate-400 uppercase tracking-widest border-t border-slate-100">
-            KHMS Financial Reporting Engine v2.1 • Mogadishu, Somalia
+        <!-- Revenue Details -->
+        <div class="section-title">Revenue Streams (Income)</div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 5%;">#</th>
+                    <th style="width: 15%;">Transaction Date</th>
+                    <th style="width: 30%;">Source / Customer</th>
+                    <th style="width: 20%;">Booking Reference</th>
+                    <th style="width: 15%;">Payment Method</th>
+                    <th style="width: 15%;" class="text-right">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in report_data.payments %}
+                <tr>
+                    <td class="text-center">{{ forloop.counter }}</td>
+                    <td class="font-mono">{{ p.date|date:"Y-m-d H:i" }}</td>
+                    <td class="font-bold">{{ p.booking.guest.full_name }}</td>
+                    <td class="font-mono">BKG-{{ p.booking.id }}</td>
+                    <td>{{ p.get_payment_method_display }}</td>
+                    <td class="text-right font-bold">${{ p.amount }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="no-data">No revenue recorded in this period</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr style="background: #000; color: #fff;">
+                    <td colspan="5" class="font-bold text-right">TOTAL REVENUE:</td>
+                    <td class="text-right font-bold">${{ report_data.income }}</td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <!-- Expense Details -->
+        <div class="section-title">Expenditure (Approved Expenses)</div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 5%;">#</th>
+                    <th style="width: 15%;">Expense Date</th>
+                    <th style="width: 20%;">Category</th>
+                    <th style="width: 40%;">Description</th>
+                    <th style="width: 20%;" class="text-right">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in report_data.expenses_list %}
+                <tr>
+                    <td class="text-center">{{ forloop.counter }}</td>
+                    <td class="font-mono">{{ e.date|date:"Y-m-d" }}</td>
+                    <td class="font-bold">{{ e.category }}</td>
+                    <td>{{ e.title }}</td>
+                    <td class="text-right font-bold">${{ e.amount }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="no-data">No expenses recorded in this period</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr style="background: #000; color: #fff;">
+                    <td colspan="4" class="font-bold text-right">TOTAL EXPENSES:</td>
+                    <td class="text-right font-bold">${{ report_data.expenses }}</td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <!-- Net Position Calculation -->
+        <table style="margin-top: 20px;">
+            <tbody>
+                <tr>
+                    <td class="font-bold" style="width: 70%;">Total Revenue</td>
+                    <td class="text-right font-bold" style="width: 30%;">${{ report_data.income }}</td>
+                </tr>
+                <tr>
+                    <td class="font-bold">Less: Total Expenses</td>
+                    <td class="text-right font-bold">(${{ report_data.expenses }})</td>
+                </tr>
+                <tr style="background: #000; color: #fff;">
+                    <td class="font-bold">NET FINANCIAL POSITION</td>
+                    <td class="text-right font-bold">${{ report_data.profit }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Certification -->
+        <div class="certification">
+            <p style="font-size: 10pt; margin-bottom: 10px;">
+                <strong>CERTIFICATION:</strong> I hereby certify that this financial report accurately reflects the
+                financial transactions and position of Kheyre Hotel for the period stated above. All figures have been
+                verified and approved.
+            </p>
+
+            <div class="signature-section">
+                <div class="signature-box">
+                    <div class="signature-line">
+                        Finance Director
+                    </div>
+                </div>
+                <div class="signature-box">
+                    <div class="signature-line">
+                        General Manager
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>KHEYRE HOTEL MANAGEMENT SYSTEM (KHMS)</strong></p>
+            <p>This is a system-generated report. For any discrepancies, please contact the Finance Department.</p>
+            <p>Printed on: {% now "l, F d, Y \a\t H:i" %}</p>
         </div>
     </div>
 
-    <!-- UI Buttons -->
-    <div class="no-print fixed bottom-8 right-8 flex gap-3">
-        <button onclick="window.close()"
-            class="bg-white text-slate-600 px-6 py-3 rounded-full shadow-xl hover:bg-slate-50 font-bold border border-slate-200">
-            Close
+    <!-- Print Buttons -->
+    <div class="no-print" style="position: fixed; top: 20px; right: 20px; display: flex; gap: 10px;">
+        <button onclick="window.print()"
+            style="background: #000; color: #fff; padding: 12px 24px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 11pt;">
+            🖨️ Print Report
         </button>
         <button onclick="exportToCSV()"
-            class="bg-blue-600 text-white px-6 py-3 rounded-full shadow-xl hover:bg-blue-700 font-bold flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                </path>
-            </svg>
-            Excel
+            style="background: #fff; color: #000; padding: 12px 24px; border: 2px solid #000; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 11pt;">
+            📊 Export CSV
         </button>
-        <button onclick="window.print()"
-            class="bg-indigo-600 text-white px-8 py-3 rounded-full shadow-xl hover:bg-indigo-700 font-bold flex items-center gap-2 transform hover:scale-105 transition-all">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z">
-                </path>
-            </svg>
-            Print Audit Statement
-        </button>
+        <button onclick="window.close()" </button>
     </div>
 
+    {# Django-rendered JSON data - IDE won't parse this as JavaScript #}
+    <script id="report-data" type="application/json">
+    {
+        "header": "KHEYRE HOTEL - FINANCIAL AUDIT REPORT",
+        "period": "Period: {{ start_date|date:'M d, Y' }} to {{ end_date|date:'M d, Y' }}",
+        "generated": "Generated: {% now 'Y-m-d H:i' %}",
+        "summary": {
+            "revenue": "${{ report_data.income }}",
+            "expenses": "${{ report_data.expenses }}",
+            "netPosition": "${{ report_data.profit }}"
+        },
+        "payments": [
+            {% for p in report_data.payments %}
+            {
+                "counter": "{{ forloop.counter }}",
+                "date": "{{ p.date|date:'Y-m-d H:i' }}",
+                "customer": "{{ p.booking.guest.full_name|escapejs }}",
+                "booking": "BKG-{{ p.booking.id }}",
+                "method": "{{ p.get_payment_method_display|escapejs }}",
+                "amount": "${{ p.amount }}"
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        "expenses": [
+            {% for e in report_data.expenses_list %}
+            {
+                "counter": "{{ forloop.counter }}",
+                "date": "{{ e.date|date:'Y-m-d' }}",
+                "category": "{{ e.category|escapejs }}",
+                "title": "{{ e.title|escapejs }}",
+                "amount": "${{ e.amount }}"
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        "filename": "Financial_Audit_{{ start_date|date:'Y-m-d' }}.csv"
+    }
+    </script>
+
     <script>
+        // Load the data from the JSON script tag
+        var reportData = JSON.parse(document.getElementById('report-data').textContent);
+
         function exportToCSV() {
-            let csv = [];
-            let tables = document.querySelectorAll("table");
-            tables.forEach((table, index) => {
-                let rows = table.querySelectorAll("tr");
-                csv.push(index === 0 ? "INCOME RECORDS" : "EXPENSE RECORDS");
-                for (let i = 0; i < rows.length; i++) {
-                    let row = [], cols = rows[i].querySelectorAll("td, th");
-                    for (let j = 0; j < cols.length; j++)
-                        row.push('"' + cols[j].innerText.replace(/"/g, '""').trim() + '"');
-                    csv.push(row.join(","));
-                }
-                csv.push(""); // empty line between tables
+            var csv = [];
+            csv.push(reportData.header);
+            csv.push(reportData.period);
+            csv.push(reportData.generated);
+            csv.push("");
+
+            // Financial Summary
+            csv.push("FINANCIAL SUMMARY");
+            csv.push("Total Revenue," + reportData.summary.revenue);
+            csv.push("Total Expenses," + reportData.summary.expenses);
+            csv.push("Net Position," + reportData.summary.netPosition);
+            csv.push("");
+
+            // Revenue Details
+            csv.push("REVENUE DETAILS");
+            csv.push("#,Transaction Date,Customer,Booking,Payment Method,Amount");
+            reportData.payments.forEach(function (p) {
+                csv.push(p.counter + "," + p.date + ",\"" + p.customer + "\"," + p.booking + "," + p.method + "," + p.amount);
             });
-            let csvFile = new Blob([csv.join("\n")], { type: "text/csv" });
-            let downloadLink = document.createElement("a");
-            downloadLink.download = "Financial_Audit_{{ start_date|date:'Y-m-d' }}.csv";
+            csv.push(",,,,TOTAL REVENUE," + reportData.summary.revenue);
+            csv.push("");
+
+            // Expense Details
+            csv.push("EXPENSE DETAILS");
+            csv.push("#,Expense Date,Category,Description,Amount");
+            reportData.expenses.forEach(function (e) {
+                csv.push(e.counter + "," + e.date + "," + e.category + ",\"" + e.title + "\"," + e.amount);
+            });
+            csv.push(",,,TOTAL EXPENSES," + reportData.summary.expenses);
+
+            var csvFile = new Blob([csv.join("\n")], { type: "text/csv" });
+            var downloadLink = document.createElement("a");
+            downloadLink.download = reportData.filename;
             downloadLink.href = window.URL.createObjectURL(csvFile);
             downloadLink.style.display = "none";
             document.body.appendChild(downloadLink);
             downloadLink.click();
             document.body.removeChild(downloadLink);
         }
+
+        // Auto-focus for clean print view
+        window.addEventListener('load', function () {
+            document.body.style.opacity = '1';
+        });
     </script>
 </body>
 

@@ -239,7 +239,8 @@
                     <tr>
                         <td class="px-6 py-4">
                             <div class="font-bold text-gray-800">{{ booking.guest.full_name }}</div>
-                            <div class="text-[10px] text-gray-400 capitalize">{{ booking.guest.address|default:"-" }}
+                            <div class="text-[10px] text-gray-400 capitalize">
+                                {{ booking.guest.address|default:"-" }}
                             </div>
                         </td>
                         <td class="px-6 py-4 text-xs">{{ booking.guest.phone_number }}</td>
@@ -247,7 +248,9 @@
                         <td class="px-6 py-4 text-xs">{{ booking.check_in_date|date:"Y-m-d" }}</td>
                         <td class="px-6 py-4 text-xs">{{ booking.check_out_date|date:"Y-m-d" }}</td>
                         <td class="px-6 py-4 text-center">
-                            <span class="px-2 py-1 bg-gray-100 rounded font-bold text-gray-700">{{ booking.room.room_number }}</span>
+                            <span class="px-2 py-1 bg-gray-100 rounded font-bold text-gray-700">
+                                {{ booking.room.room_number }}
+                            </span>
                         </td>
                     </tr>
                     {% empty %}
@@ -283,7 +286,8 @@
                     {% for p in report_data.payments %}
                     <tr class="hover:bg-gray-50 transition-colors">
                         <td class="px-6 py-4 text-xs font-mono text-gray-500">{{ p.date|date:"Y-m-d H:i" }}</td>
-                        <td class="px-6 py-4 text-xs font-mono text-gray-400">{{ p.reference_number|slice:":8" }}...
+                        <td class="px-6 py-4 text-xs font-mono text-gray-400">
+                            {{ p.reference_number|slice:":8" }}...
                         </td>
                         <td class="px-6 py-4">
                             <div class="flex flex-col">
