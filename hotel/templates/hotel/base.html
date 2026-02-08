@@ -214,7 +214,8 @@
 
             <div class="flex items-center gap-2 lg:gap-4">
                 <!-- Mobile Search Button -->
-                <button class="md:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors">
+                <button id="mobileSearchToggle"
+                    class="md:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -235,6 +236,45 @@
                 </div>
             </div>
         </header>
+
+        <!-- Mobile Search Modal -->
+        <div id="mobileSearchModal" class="fixed inset-0 bg-slate-900/50 z-50 hidden md:hidden">
+            <div class="bg-white h-full flex flex-col">
+                <!-- Modal Header -->
+                <div class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4">
+                    <h3 class="text-lg font-bold text-slate-800">Search</h3>
+                    <button id="closeMobileSearch"
+                        class="p-2 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Mobile Search Input -->
+                <div class="p-4">
+                    <form action="{% url 'search' %}" method="get" class="relative" autocomplete="off">
+                        <span
+                            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                            <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </span>
+                        <input type="text" name="q" id="mobileSearchInput"
+                            class="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl leading-5 bg-slate-50 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-base transition duration-150 ease-in-out"
+                            placeholder="Search guests, bookings, rooms...">
+                    </form>
+                </div>
+
+                <!-- Mobile Search Results -->
+                <div class="flex-1 overflow-y-auto">
+                    <div id="mobileSearchResults" class="divide-y divide-slate-100"></div>
+                </div>
+            </div>
+        </div>
         {% endif %}
 
         <!-- Content -->
@@ -291,56 +331,117 @@
                 });
             }
 
-            // Search Functionality
+            // Mobile Search Modal Toggle
+            const mobileSearchToggle = document.getElementById('mobileSearchToggle');
+            const mobileSearchModal = document.getElementById('mobileSearchModal');
+            const closeMobileSearch = document.getElementById('closeMobileSearch');
+            const mobileSearchInput = document.getElementById('mobileSearchInput');
+            const mobileSearchResults = document.getElementById('mobileSearchResults');
+
+            if (mobileSearchToggle) {
+                mobileSearchToggle.addEventListener('click', () => {
+                    mobileSearchModal.classList.remove('hidden');
+                    // Auto-focus the input when modal opens
+                    setTimeout(() => {
+                        mobileSearchInput.focus();
+                    }, 100);
+                });
+            }
+
+            if (closeMobileSearch) {
+                closeMobileSearch.addEventListener('click', () => {
+                    mobileSearchModal.classList.add('hidden');
+                    mobileSearchInput.value = '';
+                    mobileSearchResults.innerHTML = '';
+                });
+            }
+
+            // Close mobile search modal when clicking outside
+            if (mobileSearchModal) {
+                mobileSearchModal.addEventListener('click', (e) => {
+                    if (e.target === mobileSearchModal) {
+                        mobileSearchModal.classList.add('hidden');
+                        mobileSearchInput.value = '';
+                        mobileSearchResults.innerHTML = '';
+                    }
+                });
+            }
+
+            // Desktop Search Functionality
             const searchInput = document.getElementById('liveSearchInput');
             const resultsDiv = document.getElementById('liveSearchResults');
             let debounceTimer;
 
-            searchInput.addEventListener('input', function (e) {
-                const query = e.target.value.trim();
+            if (searchInput && resultsDiv) {
+                searchInput.addEventListener('input', function (e) {
+                    const query = e.target.value.trim();
 
-                clearTimeout(debounceTimer);
+                    clearTimeout(debounceTimer);
 
-                if (query.length < 2) {
-                    resultsDiv.classList.add('hidden');
-                    resultsDiv.innerHTML = '';
-                    return;
-                }
+                    if (query.length < 2) {
+                        resultsDiv.classList.add('hidden');
+                        resultsDiv.innerHTML = '';
+                        return;
+                    }
 
-                debounceTimer = setTimeout(() => {
-                    fetchSearchResults(query);
-                }, 400);
-            });
+                    debounceTimer = setTimeout(() => {
+                        fetchSearchResults(query, resultsDiv);
+                    }, 400);
+                });
 
-            document.addEventListener('click', function (e) {
-                if (!searchInput.contains(e.target) && !resultsDiv.contains(e.target)) {
-                    resultsDiv.classList.add('hidden');
-                }
-            });
+                document.addEventListener('click', function (e) {
+                    if (!searchInput.contains(e.target) && !resultsDiv.contains(e.target)) {
+                        resultsDiv.classList.add('hidden');
+                    }
+                });
 
-            searchInput.addEventListener('focus', function () {
-                if (searchInput.value.trim().length >= 2 && resultsDiv.children.length > 0) {
-                    resultsDiv.classList.remove('hidden');
-                }
-            });
+                searchInput.addEventListener('focus', function () {
+                    if (searchInput.value.trim().length >= 2 && resultsDiv.children.length > 0) {
+                        resultsDiv.classList.remove('hidden');
+                    }
+                });
+            }
 
-            function fetchSearchResults(query) {
+            // Mobile Search Functionality
+            if (mobileSearchInput && mobileSearchResults) {
+                mobileSearchInput.addEventListener('input', function (e) {
+                    const query = e.target.value.trim();
+
+                    clearTimeout(debounceTimer);
+
+                    if (query.length < 2) {
+                        mobileSearchResults.innerHTML = '';
+                        return;
+                    }
+
+                    debounceTimer = setTimeout(() => {
+                        fetchSearchResults(query, mobileSearchResults, true);
+                    }, 400);
+                });
+            }
+
+            function fetchSearchResults(query, targetDiv, isMobile = false) {
                 fetch(`/api/search/?q=${encodeURIComponent(query)}`)
                     .then(response => response.json())
                     .then(data => {
-                        resultsDiv.innerHTML = '';
+                        targetDiv.innerHTML = '';
 
                         if (data.results.length === 0) {
-                            resultsDiv.innerHTML = `
-                                <div class="p-4 text-center text-sm text-gray-400">
-                                    No results found for "${query}"
+                            targetDiv.innerHTML = `
+                                <div class="p-6 text-center text-sm text-gray-400">
+                                    <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <p>No results found for "${query}"</p>
                                 </div>
                             `;
                         } else {
                             data.results.forEach(item => {
                                 const itemDiv = document.createElement('a');
                                 itemDiv.href = item.url;
-                                itemDiv.className = 'block px-4 py-3 hover:bg-gray-50 border-b border-gray-50 last:border-0 transition-colors flex items-center gap-3';
+                                itemDiv.className = isMobile
+                                    ? 'block px-4 py-4 hover:bg-gray-50 transition-colors flex items-center gap-3'
+                                    : 'block px-4 py-3 hover:bg-gray-50 border-b border-gray-50 last:border-0 transition-colors flex items-center gap-3';
 
                                 let icon = '';
                                 if (item.type === 'guest') {
@@ -355,25 +456,40 @@
 
                                 itemDiv.innerHTML = `
                                     ${icon}
-                                    <div>
-                                        <p class="text-sm font-semibold text-gray-800">${item.title}</p>
-                                        <p class="text-xs text-gray-500">${item.subtitle}</p>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-semibold text-gray-800 truncate">${item.title}</p>
+                                        <p class="text-xs text-gray-500 truncate">${item.subtitle}</p>
                                     </div>
                                 `;
-                                resultsDiv.appendChild(itemDiv);
+                                targetDiv.appendChild(itemDiv);
                             });
 
-                            const viewAll = document.createElement('a');
-                            viewAll.href = "{% url 'search' %}?q=" + encodeURIComponent(query);
-                            viewAll.className = 'block p-3 text-center text-xs font-bold text-blue-600 bg-gray-50 hover:bg-gray-100 transition-colors uppercase tracking-wider';
-                            viewAll.textContent = 'View All Results';
-                            resultsDiv.appendChild(viewAll);
+                            if (!isMobile) {
+                                const viewAll = document.createElement('a');
+                                viewAll.href = "{% url 'search' %}?q=" + encodeURIComponent(query);
+                                viewAll.className = 'block p-3 text-center text-xs font-bold text-blue-600 bg-gray-50 hover:bg-gray-100 transition-colors uppercase tracking-wider';
+                                viewAll.textContent = 'View All Results';
+                                targetDiv.appendChild(viewAll);
+                            } else {
+                                const viewAll = document.createElement('a');
+                                viewAll.href = "{% url 'search' %}?q=" + encodeURIComponent(query);
+                                viewAll.className = 'block p-4 text-center text-sm font-bold text-blue-600 bg-gray-50 hover:bg-gray-100 transition-colors uppercase tracking-wider border-t border-gray-200';
+                                viewAll.textContent = 'View All Results';
+                                targetDiv.appendChild(viewAll);
+                            }
                         }
 
-                        resultsDiv.classList.remove('hidden');
+                        if (!isMobile) {
+                            targetDiv.classList.remove('hidden');
+                        }
                     })
                     .catch(error => {
                         console.error('Error fetching search results:', error);
+                        targetDiv.innerHTML = `
+                            <div class="p-6 text-center text-sm text-red-500">
+                                <p>Error loading search results. Please try again.</p>
+                            </div>
+                        `;
                     });
             }
         });
