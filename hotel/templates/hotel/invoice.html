@@ -120,18 +120,15 @@
                         <td class="py-4 px-2">
                             <p class="font-bold text-gray-900">Accommodation Charge</p>
                             <p class="text-gray-500 text-xs mt-1">
-                                Room {{ invoice.booking.room.room_number }} ({{
-                                invoice.booking.room.get_room_type_display }})
+                                Room {{ invoice.booking.room.room_number }}
+                                ({{ invoice.booking.room.get_room_type_display }})
                             </p>
                         </td>
                         <td class="py-4 px-2 text-center text-gray-600">${{ invoice.booking.room_rate }}</td>
                         <td class="py-4 px-2 text-center text-gray-600">
                             {% if invoice.booking.status == 'Checked-Out' %}
-                            {{
-                            invoice.booking.get_actual_total|divisibleby:invoice.booking.room_rate|yesno:"??,Variable"
-                            }}
-                            <!-- Complex logic needed to show exact nights, simplifying for display: -->
-                            Calc.
+                            <!-- Calculation logic (simplified for display) -->
+                            {{ invoice.booking.check_out_date|timeuntil:invoice.booking.check_in_date }}
                             {% else %}
                             {{ invoice.booking.check_out_date|timeuntil:invoice.booking.check_in_date }}
                             {% endif %}

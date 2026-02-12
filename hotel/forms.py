@@ -29,18 +29,22 @@ class BookingForm(forms.ModelForm):
         check_in = cleaned_data.get('check_in_date')
         check_out = cleaned_data.get('check_out_date')
 
-        if check_in and check_out and room:
-            # Simple overlap check
-            overlapping_bookings = Booking.objects.filter(
-                room=room,
-                check_in_date__lt=check_out,
-                check_out_date__gt=check_in
-            ).exclude(status='Cancelled')
-            if self.instance.pk:
-                 overlapping_bookings = overlapping_bookings.exclude(pk=self.instance.pk)
-            
-            if overlapping_bookings.exists():
-                raise forms.ValidationError("Room is already booked for these dates.")
+        if check_in and check_out:
+            if check_out <= check_in:
+                raise forms.ValidationError("Check-out date must be after check-in date.")
+
+            if room:
+                # Simple overlap check
+                overlapping_bookings = Booking.objects.filter(
+                    room=room,
+                    check_in_date__lt=check_out,
+                    check_out_date__gt=check_in
+                ).exclude(status='Cancelled')
+                if self.instance.pk:
+                     overlapping_bookings = overlapping_bookings.exclude(pk=self.instance.pk)
+                
+                if overlapping_bookings.exists():
+                    raise forms.ValidationError("Room is already booked for these dates.")
         return cleaned_data
 
 class PaymentForm(forms.ModelForm):

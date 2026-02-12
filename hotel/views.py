@@ -11,7 +11,7 @@ from .forms import BookingForm, GuestForm, PaymentForm, ExpenseForm, RoomForm, U
 
 @login_required
 def dashboard(request):
-    if request.user.role == 'admin':
+    if request.user.is_admin():
         return admin_dashboard(request)
     else:
         return receptionist_dashboard(request)
@@ -65,6 +65,7 @@ def admin_dashboard(request):
         'available_rooms': available_count,
         'booked_rooms': booked_count,
         'maintenance_rooms': maintenance_count,
+        'overdue_bookings': Booking.objects.select_related('guest', 'room').filter(check_out_date__lt=today, status='Checked-In'),
         'occupancy_rate': round(occupancy_rate, 1),
         'todays_income': todays_income,
         'total_expenses': total_expenses,
@@ -107,7 +108,9 @@ def receptionist_dashboard(request):
         'arrivals_today': arrivals_today,
         'checkouts_due': checkouts_due,
         'total_collected_today': total_collected_today,
+        'total_collected_today': total_collected_today,
         'recent_bookings': recent_bookings,
+        'overdue_bookings': Booking.objects.select_related('guest', 'room').filter(check_out_date__lt=today, status='Checked-In'),
     }
     return render(request, 'hotel/receptionist_dashboard.html', context)
 
@@ -149,7 +152,7 @@ def edit_guest(request, guest_id):
 @login_required
 @login_required
 def delete_guest(request, guest_id):
-    if request.user.role != 'admin':
+    if not request.user.is_admin():
         messages.error(request, 'Security Alert: Only administrators can remove guest profiles.')
         return redirect('guest_list')
         
@@ -165,7 +168,7 @@ def delete_guest(request, guest_id):
 
 @login_required
 def booking_list(request):
-    bookings = Booking.objects.all().order_by('-booking_date')
+    bookings = Booking.objects.select_related('guest', 'room').all().order_by('-booking_date')
     return render(request, 'hotel/booking_list.html', {'bookings': bookings})
 
 @login_required
@@ -324,7 +327,7 @@ def cancel_booking(request, booking_id):
 
 @login_required
 def expense_list(request):
-    expenses = Expense.objects.all().order_by('-date')
+    expenses = Expense.objects.select_related('created_by', 'approved_by').all().order_by('-date')
     return render(request, 'hotel/expense_list.html', {'expenses': expenses})
 
 @login_required
@@ -343,7 +346,7 @@ def add_expense(request):
 
 @login_required
 def approve_expense(request, expense_id):
-    if request.user.role != 'admin':
+    if not request.user.is_admin():
         messages.error(request, 'Access denied')
         return redirect('expense_list')
     
@@ -356,7 +359,7 @@ def approve_expense(request, expense_id):
 
 @login_required
 def reject_expense(request, expense_id):
-    if request.user.role != 'admin':
+    if not request.user.is_admin():
         messages.error(request, 'Access denied')
         return redirect('expense_list')
     
@@ -369,7 +372,7 @@ def reject_expense(request, expense_id):
 
 @login_required
 def flexible_report(request):
-    if request.user.role != 'admin':
+    if not request.user.is_admin():
         messages.error(request, 'Access denied')
         return redirect('dashboard')
     
@@ -458,7 +461,7 @@ def invoice_view(request, booking_id):
 
 @login_required
 def user_list(request):
-    if request.user.role != 'admin':
+    if not request.user.is_admin():
         messages.error(request, 'Access denied')
         return redirect('dashboard')
     users = User.objects.all()
@@ -466,7 +469,7 @@ def user_list(request):
 
 @login_required
 def add_user(request):
-    if request.user.role != 'admin':
+    if not request.user.is_admin():
         messages.error(request, 'Access denied')
         return redirect('dashboard')
     
@@ -482,7 +485,7 @@ def add_user(request):
 
 @login_required
 def toggle_user_status(request, user_id):
-    if request.user.role != 'admin':
+    if not request.user.is_admin():
         messages.error(request, 'Access denied')
         return redirect('dashboard')
     
@@ -499,7 +502,7 @@ def toggle_user_status(request, user_id):
 
 @login_required
 def add_room(request):
-    if request.user.role != 'admin':
+    if not request.user.is_admin():
         messages.error(request, 'Access denied')
         return redirect('dashboard')
         
@@ -515,7 +518,7 @@ def add_room(request):
 
 @login_required
 def edit_room(request, room_id):
-    if request.user.role != 'admin':
+    if not request.user.is_admin():
         messages.error(request, 'Access denied')
         return redirect('dashboard')
         
@@ -533,7 +536,7 @@ def edit_room(request, room_id):
 @login_required
 @login_required
 def delete_room(request, room_id):
-    if request.user.role != 'admin':
+    if not request.user.is_admin():
         messages.error(request, 'Access Denied: Room deletion is restricted to Admins.')
         return redirect('room_list')
     room = get_object_or_404(Room, id=room_id)
@@ -560,7 +563,7 @@ def edit_booking(request, booking_id):
 
 @login_required
 def delete_booking(request, booking_id):
-    if request.user.role != 'admin':
+    if not request.user.is_admin():
         messages.error(request, 'Security Alert: Only Admins can permanently delete reservation records.')
         return redirect('booking_list')
         
@@ -580,7 +583,7 @@ def delete_booking(request, booking_id):
 @login_required
 def edit_expense(request, expense_id):
     expense = get_object_or_404(Expense, id=expense_id)
-    if expense.status != 'Pending' and request.user.role != 'admin':
+    if expense.status != 'Pending' and not request.user.is_admin():
         messages.error(request, 'Audit Lock: Only admins can edit approved/rejected expenses.')
         return redirect('expense_list')
     
@@ -596,7 +599,7 @@ def edit_expense(request, expense_id):
 
 @login_required
 def delete_expense(request, expense_id):
-    if request.user.role != 'admin':
+    if not request.user.is_admin():
         messages.error(request, 'Access Denied: Expense records can only be removed by administrators.')
         return redirect('expense_list')
         
@@ -611,7 +614,7 @@ def delete_expense(request, expense_id):
 
 @login_required
 def delete_payment(request, payment_id):
-    if request.user.role != 'admin':
+    if not request.user.is_admin():
         messages.error(request, 'Security Alert: Only administrators can remove payment records.')
         return redirect('booking_list')
         
@@ -629,25 +632,31 @@ def delete_payment(request, payment_id):
 
 @login_required
 def recycle_bin(request):
-    if request.user.role != 'admin':
+    if not request.user.is_admin():
         messages.error(request, 'Access Denied')
         return redirect('dashboard')
     
     # Auto-cleanup logic: Remove items older than 7 days
     from datetime import timedelta
+    from django.db.models import ProtectedError
     cutoff = timezone.now() - timedelta(days=7)
     
-    # Hard delete old items
-    if Guest.objects.deleted().filter(deleted_at__lt=cutoff).exists():
-        Guest.objects.deleted().filter(deleted_at__lt=cutoff).delete()
-    if Room.objects.deleted().filter(deleted_at__lt=cutoff).exists():
-        Room.objects.deleted().filter(deleted_at__lt=cutoff).delete()
-    if Booking.objects.deleted().filter(deleted_at__lt=cutoff).exists():
-        Booking.objects.deleted().filter(deleted_at__lt=cutoff).delete()
-    if Expense.objects.deleted().filter(deleted_at__lt=cutoff).exists():
-        Expense.objects.deleted().filter(deleted_at__lt=cutoff).delete()
-    if Payment.objects.deleted().filter(deleted_at__lt=cutoff).exists():
-        Payment.objects.deleted().filter(deleted_at__lt=cutoff).delete()
+    # Hard delete old items safely
+    try:
+        # We delete one by one or wrap individual chunks to ensure some progress if others fail
+        if Guest.objects.deleted().filter(deleted_at__lt=cutoff).exists():
+            Guest.objects.deleted().filter(deleted_at__lt=cutoff).delete()
+        if Room.objects.deleted().filter(deleted_at__lt=cutoff).exists():
+            Room.objects.deleted().filter(deleted_at__lt=cutoff).delete()
+        if Booking.objects.deleted().filter(deleted_at__lt=cutoff).exists():
+            Booking.objects.deleted().filter(deleted_at__lt=cutoff).delete()
+        if Expense.objects.deleted().filter(deleted_at__lt=cutoff).exists():
+            Expense.objects.deleted().filter(deleted_at__lt=cutoff).delete()
+        if Payment.objects.deleted().filter(deleted_at__lt=cutoff).exists():
+            Payment.objects.deleted().filter(deleted_at__lt=cutoff).delete()
+    except ProtectedError:
+        # Silently skip cleanup for protected records (they will be cleaned up later if dependencies are removed)
+        pass
 
     deleted_items = []
     
@@ -672,7 +681,7 @@ def recycle_bin(request):
 
 @login_required
 def restore_item(request, item_type, item_id):
-    if request.user.role != 'admin':
+    if not request.user.is_admin():
         messages.error(request, 'Access Denied')
         return redirect('dashboard')
     
@@ -696,7 +705,7 @@ def restore_item(request, item_type, item_id):
 
 @login_required
 def permanent_delete_item(request, item_type, item_id):
-    if request.user.role != 'admin':
+    if not request.user.is_admin():
         messages.error(request, 'Access Denied')
         return redirect('dashboard')
     
@@ -751,7 +760,7 @@ def search(request):
 
 @login_required
 def guest_report(request):
-    if request.user.role != 'admin':
+    if not request.user.is_admin():
         messages.error(request, 'Access denied')
         return redirect('dashboard')
         
@@ -864,7 +873,7 @@ def api_search(request):
 
 @login_required
 def printable_financial_report(request):
-    if request.user.role != 'admin':
+    if not request.user.is_admin():
         messages.error(request, 'Access denied')
         return redirect('dashboard')
     

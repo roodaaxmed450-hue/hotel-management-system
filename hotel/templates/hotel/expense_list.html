@@ -18,7 +18,7 @@
                     <th class="px-6 py-4 hidden md:table-cell">Category</th>
                     <th class="px-6 py-4">Amount</th>
                     <th class="px-6 py-4 text-center">Status</th>
-                    {% if user.role == 'admin' %}
+                    {% if user.is_admin %}
                     <th class="px-6 py-4 text-right">Action</th>
                     {% endif %}
                 </tr>
@@ -49,7 +49,7 @@
                             {{ expense.get_status_display }}
                         </span>
                     </td>
-                    {% if user.role == 'admin' %}
+                    {% if user.is_admin %}
                     <td class="px-6 py-4 text-right">
                         <div
                             class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 lg:opacity-100 transition-opacity">

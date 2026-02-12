@@ -20,7 +20,7 @@
 
                 {% if form.non_field_errors %}
                 <div class="bg-red-50 border border-red-100 text-red-600 p-3 rounded-lg text-sm">
-                    {{ form.non_field_errors.0 }}
+                    {{ form.non_field_errors.0|safe }}
                 </div>
                 {% endif %}
 

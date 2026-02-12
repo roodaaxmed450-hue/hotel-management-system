@@ -6,6 +6,38 @@
 {% block content %}
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
+    {% if booking.is_overdue %}
+    <div class="lg:col-span-3 bg-red-50 border-l-4 border-red-500 p-4 mb-2 shadow-sm rounded-r-lg">
+        <div class="flex items-center">
+            <div class="flex-shrink-0">
+                <svg class="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <div class="ml-4">
+                <h3 class="text-lg font-bold text-red-800">
+                    ⚠️ Checkout Time Reached!
+                </h3>
+                <p class="text-sm text-red-700 mt-1">
+                    Guest expired stay on <span class="font-bold">{{ booking.check_out_date }}</span>.
+                    Please notify the guest to checkout immediately or extend their stay.
+                </p>
+                <div class="mt-3 flex gap-3">
+                    <button onclick="showCheckoutEdit()"
+                        class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2 rounded transition-colors shadow-sm">
+                        Extend Stay (Update Time)
+                    </button>
+                    <a href="{% url 'check_out' booking.id %}"
+                        class="bg-white border border-red-200 text-red-700 hover:bg-red-50 text-xs font-bold px-4 py-2 rounded transition-colors shadow-sm">
+                        Process Checkout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Booking Info -->
     <div class="lg:col-span-2 space-y-6">
         <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
@@ -254,7 +286,7 @@
                             <th class="px-4 py-2">Method</th>
                             <th class="px-4 py-2">Amount</th>
                             <th class="px-4 py-2">Recorded By</th>
-                            {% if user.role == 'admin' %}
+                            {% if user.is_admin %}
                             <th class="px-4 py-2 text-right">Action</th>
                             {% endif %}
                         </tr>
@@ -275,7 +307,7 @@
                             <td class="px-4 py-3">{{ payment.get_payment_method_display|default:"-" }}</td>
                             <td class="px-4 py-3 font-medium text-gray-800">${{ payment.amount }}</td>
                             <td class="px-4 py-3 text-xs">{{ payment.recorded_by.username|default:"System" }}</td>
-                            {% if user.role == 'admin' %}
+                            {% if user.is_admin %}
                             <td class="px-4 py-3 text-right">
                                 <a href="{% url 'delete_payment' payment.id %}"
                                     onclick="return confirm('Security Check: Confirm permanent deletion of this financial record? This action will impact the balance and audit trail.')"
@@ -291,7 +323,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="{% if user.role == 'admin' %}6{% else %}5{% endif %}"
+                            <td colspan="{% if user.is_admin %}6{% else %}5{% endif %}"
                                 class="px-4 py-6 text-center text-gray-400">No payments recorded yet.</td>
                         </tr>
                         {% endfor %}
@@ -317,12 +349,16 @@
                 </div>
                 <div class="flex justify-between items-center bg-blue-50/50 p-2 rounded-lg border border-blue-100/50">
                     <span class="text-gray-500 font-medium">Discount</span>
-                    <form method="post" action="{% url 'apply_discount' booking.id %}" class="flex items-center">
+                    <form method="post" action="{% url 'apply_discount' booking.id %}" class="flex items-center gap-2">
                         {% csrf_token %}
-                        <span class="text-gray-600 mr-1 font-bold">- $</span>
-                        <input type="number" name="discount" step="0.01" value="{{ booking.discount }}"
-                            class="w-20 text-right p-1 border-b border-gray-300 bg-transparent focus:border-blue-500 outline-none font-bold text-gray-800"
-                            onchange="this.form.submit()">
+                        <div class="flex items-center">
+                            <span class="text-gray-600 mr-1 font-bold">- $</span>
+                            <input type="number" name="discount" step="0.01" value="{{ booking.discount }}"
+                                id="discount-input"
+                                class="w-16 text-right p-1 border-b border-gray-300 bg-transparent focus:border-blue-500 outline-none font-bold text-gray-800">
+                        </div>
+                        <button type="submit"
+                            class="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 transition-colors">Apply</button>
                     </form>
                 </div>
 
@@ -444,5 +480,33 @@
         const inView = document.getElementById('checkin-view');
         if (inForm && !inForm.contains(e.target) && !inView.contains(e.target)) hideCheckinEdit();
     });
+
+    // Instant Discount Calculation
+    const discountInput = document.getElementById('discount-input');
+    const balanceDisplay = document.getElementById('current-balance');
+
+    if (discountInput && balanceDisplay) {
+        // Calculate Base (Pre-Discount) Balance
+        let initialBalance = parseFloat(balanceDisplay.innerText.replace(/[$,]/g, ''));
+        let initialDiscount = parseFloat(discountInput.value) || 0;
+        let baseTotal = initialBalance + initialDiscount;
+
+        discountInput.addEventListener('input', function () {
+            let newDiscount = parseFloat(this.value) || 0;
+            let newBalance = baseTotal - newDiscount;
+
+            // Format to 2 decimal places
+            balanceDisplay.innerText = '$' + newBalance.toFixed(2);
+
+            // Visual feedback
+            if (newBalance > 0) {
+                balanceDisplay.classList.remove('text-green-600');
+                balanceDisplay.classList.add('text-red-600');
+            } else {
+                balanceDisplay.classList.remove('text-red-600');
+                balanceDisplay.classList.add('text-green-600');
+            }
+        });
+    }
 </script>
 {% endblock %}

@@ -37,7 +37,7 @@ class User(AbstractUser):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='receptionist')
 
     def is_admin(self):
-        return self.role == 'admin'
+        return self.role == 'admin' or self.is_superuser
 
     def is_receptionist(self):
         return self.role == 'receptionist'
@@ -58,7 +58,7 @@ class Room(SoftDeleteModel):
     room_type = models.CharField(max_length=20, choices=ROOM_TYPES)
     price_per_night = models.DecimalField(max_digits=10, decimal_places=2)
     capacity = models.IntegerField()
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Available')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Available', db_index=True)
 
     def __str__(self):
         return f"{self.room_number} - {self.get_room_type_display()}"
@@ -86,14 +86,14 @@ class Booking(SoftDeleteModel):
     room = models.ForeignKey(Room, on_delete=models.PROTECT, related_name='bookings')
     
     # Planned dates (for reservation)
-    check_in_date = models.DateField()
-    check_out_date = models.DateField()
+    check_in_date = models.DateField(db_index=True)
+    check_out_date = models.DateField(db_index=True)
     
     # Actual timestamps (for billing)
     actual_checkin = models.DateTimeField(null=True, blank=True)
     actual_checkout = models.DateTimeField(null=True, blank=True)
     
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Confirmed')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Confirmed', db_index=True)
     booking_date = models.DateTimeField(auto_now_add=True)
     
     # Room rate at booking time (locked in)
@@ -203,6 +203,13 @@ class Booking(SoftDeleteModel):
                 return 'Unpaid'
         return 'N/A'
 
+    @property
+    def is_overdue(self):
+        """Check if booking is overdue for checkout"""
+        if self.status != 'Checked-In':
+            return False
+        return self.check_out_date <= timezone.now().date()
+
     def __str__(self):
         return f"Booking {self.id} - {self.guest.full_name}"
 
@@ -261,7 +268,7 @@ class Payment(SoftDeleteModel):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHODS, null=True, blank=True)
     reference_number = models.CharField(max_length=50, blank=True)
-    date = models.DateTimeField(auto_now_add=True)
+    date = models.DateTimeField(auto_now_add=True, db_index=True)
     recorded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     notes = models.TextField(blank=True)
 
@@ -286,9 +293,9 @@ class Expense(SoftDeleteModel):
     title = models.CharField(max_length=100)
     category = models.CharField(max_length=50)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-    date = models.DateField()
+    date = models.DateField(db_index=True)
     description = models.TextField(blank=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending', db_index=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     approved_by = models.ForeignKey(User, related_name='approved_expenses', on_delete=models.SET_NULL, null=True, blank=True)
 
