@@ -538,7 +538,7 @@ def add_room(request):
         room_number = request.POST.get('room_number')
         # Check if this room number exists anywhere (Recycle Bin OR Permanently Archived)
         archived_room = Room.all_objects.filter(room_number=room_number).filter(
-            models.Q(is_deleted=True) | models.Q(is_permanently_deleted=True)
+            Q(is_deleted=True) | Q(is_permanently_deleted=True)
         ).first()
         
         if archived_room:
