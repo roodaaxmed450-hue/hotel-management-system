@@ -14,3 +14,4 @@ fix_split_tags.py
 github_push_commands/
 *.sqlite3
 .DS_Store
+static/css/src/

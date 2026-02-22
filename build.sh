@@ -4,7 +4,7 @@ set -o errexit
 
 pip install -r requirements.txt
 
-python manage.py collectstatic --no-input
+python manage.py collectstatic --no-input --ignore=css/src/*
 python manage.py migrate
 
 # Auto-create superuser if it doesn't exist
