@@ -155,8 +155,7 @@
                                 <div>
                                     <div class="font-bold text-gray-900 leading-tight">{{ booking.guest.full_name }}
                                     </div>
-                                    <div class="text-[10px] text-slate-500 font-medium mt-0.5">
-                                        {{ booking.room.room_number }} / {{ booking.room.get_room_type_display }}
+                                    <div class="text-[10px] text-slate-500 font-medium mt-0.5">{{ booking.room.display_room_number }} / {{ booking.room.get_room_type_display }}
                                     </div>
                                     <div class="text-[10px] text-blue-600 font-bold md:hidden mt-1">
                                         {{ booking.check_in_date|date:"M d" }} - {{ booking.check_out_date|date:"M d" }}

@@ -4,13 +4,16 @@ from django.utils import timezone
 
 class SoftDeleteManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(is_deleted=False)
+        # Default queryset excludes both soft-deleted and permanently archived items
+        return super().get_queryset().filter(is_deleted=False, is_permanently_deleted=False)
 
     def deleted(self):
-        return super().get_queryset().filter(is_deleted=True)
+        # Items in the recycle bin: marked as deleted but NOT yet permanently archived
+        return super().get_queryset().filter(is_deleted=True, is_permanently_deleted=False)
 
 class SoftDeleteModel(models.Model):
     is_deleted = models.BooleanField(default=False)
+    is_permanently_deleted = models.BooleanField(default=False) # For archiving items with history
     deleted_at = models.DateTimeField(null=True, blank=True)
 
     objects = SoftDeleteManager()
@@ -26,6 +29,7 @@ class SoftDeleteModel(models.Model):
 
     def restore(self):
         self.is_deleted = False
+        self.is_permanently_deleted = False
         self.deleted_at = None
         self.save()
 
@@ -45,7 +49,6 @@ class User(AbstractUser):
 class Room(SoftDeleteModel):
     ROOM_TYPES = (
         ('Single', 'Single'),
-        ('Double', 'Double'),
         ('Family', 'Family'),
     )
     STATUS_CHOICES = (
@@ -54,14 +57,21 @@ class Room(SoftDeleteModel):
         ('Occupied', 'Checked-In'),
         ('Maintenance', 'Maintenance'),
     )
-    room_number = models.CharField(max_length=10, unique=True)
+    room_number = models.CharField(max_length=50, unique=True)
     room_type = models.CharField(max_length=20, choices=ROOM_TYPES)
     price_per_night = models.DecimalField(max_digits=10, decimal_places=2)
     capacity = models.IntegerField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Available', db_index=True)
 
+    @property
+    def display_room_number(self):
+        """Returns the clean room number without the archiving suffix"""
+        if "_archived_" in self.room_number:
+            return self.room_number.split("_archived_")[0]
+        return self.room_number
+
     def __str__(self):
-        return f"{self.room_number} - {self.get_room_type_display()}"
+        return f"{self.display_room_number} - {self.get_room_type_display()}"
 
 class Guest(SoftDeleteModel):
     full_name = models.CharField(max_length=100)
@@ -84,6 +94,7 @@ class Booking(SoftDeleteModel):
     )
     guest = models.ForeignKey(Guest, on_delete=models.PROTECT, related_name='bookings')
     room = models.ForeignKey(Room, on_delete=models.PROTECT, related_name='bookings')
+    number_of_guests = models.PositiveIntegerField(default=1)
     
     # Planned dates (for reservation)
     check_in_date = models.DateField(db_index=True)
@@ -111,7 +122,19 @@ class Booking(SoftDeleteModel):
     def save(self, *args, **kwargs):
         # Lock in room rate if not set
         if not self.room_rate and self.room:
-            self.room_rate = self.room.price_per_night
+            from decimal import Decimal
+            if self.room.room_type == 'Single':
+                if self.number_of_guests == 1:
+                    self.room_rate = Decimal('8.00')
+                elif self.number_of_guests == 2:
+                    self.room_rate = Decimal('12.00')
+                else:
+                    self.room_rate = Decimal('12.00') # Fallback, validation should catch this
+            elif self.room.room_type == 'Family':
+                self.room_rate = Decimal('16.00')
+            else:
+                # Default fallback to room's default price if any
+                self.room_rate = self.room.price_per_night
         
         # Calculate deposit (30% of estimated total)
         if not self.deposit_amount:
@@ -124,21 +147,13 @@ class Booking(SoftDeleteModel):
         
         super().save(*args, **kwargs)
     
-    def get_estimated_total(self):
-        """Estimated total based on planned dates"""
+    def get_room_charges(self):
+        """Room charges based on duration and rate"""
         if self.status == 'Cancelled':
-            return 0
-        days = (self.check_out_date - self.check_in_date).days
-        if days < 1:
-            days = 1
-        return (days * self.room_rate) - self.discount
-    
-    def get_actual_total(self):
-        """Actual total based on real check-in/out times"""
-        if self.status == 'Cancelled':
-            return 0
+            from decimal import Decimal
+            return Decimal('0.00')
         
-        # Base calculation: Use actual times if available, else planned dates
+        # Base calculation: Use actual times if available (Checked-Out), else planned dates
         if self.actual_checkin and self.actual_checkout:
             import math
             time_diff = self.actual_checkout - self.actual_checkin
@@ -146,43 +161,53 @@ class Booking(SoftDeleteModel):
             days = math.ceil(hours / 24)
             if days < 1:
                 days = 1
-            room_charges = days * self.room_rate
+            return days * self.room_rate
         else:
-            # Fallback to planned duration for room charges if not checked out yet
-            room_charges = self.get_estimated_total() + self.discount
-            
-        return room_charges + self.total_additional_charges - self.discount
-
+            # Fallback to planned duration if not checked out yet
+            days = (self.check_out_date - self.check_in_date).days
+            if days < 1:
+                days = 1
+            return days * self.room_rate
+    
     @property
     def total_additional_charges(self):
         """Total sum of all additional charges"""
         return sum(charge.amount for charge in self.additional_charges.all())
-    
-    def get_total_paid(self):
-        """Total amount paid (Deposits + Regular Payments)"""
-        return sum(p.amount for p in self.payments.filter(payment_type__in=['Deposit', 'Payment']))
-    
+
+    def get_total_gross(self):
+        """Total before any discounts (Room + Services)"""
+        return self.get_room_charges() + self.total_additional_charges
+
     def get_total_discounted(self):
-        """Total discounts applied (Flat field + Ledger records)"""
+        """All discounts (flat field + ledger entries)"""
         ledger_discounts = sum(p.amount for p in self.payments.filter(payment_type='Discount'))
         return self.discount + ledger_discounts
-    
+
+    def get_total_paid(self):
+        """Total cash collected (Deposits + Payments)"""
+        return sum(p.amount for p in self.payments.filter(payment_type__in=['Deposit', 'Payment']))
+
     def get_total_refunded(self):
-        """Total amount refunded"""
+        """Total cash returned"""
         return sum(p.amount for p in self.payments.filter(payment_type='Refund'))
-    
+
+    def get_net_total(self):
+        """Final amount guest is expected to pay (Gross - Discounts)"""
+        return self.get_total_gross() - self.get_total_discounted()
+
     def get_balance(self):
-        """Current balance (Rent + Services - Paid)"""
+        """Outstanding amount (Net Total - (Paid - Refunded))"""
         if self.status == 'Cancelled':
-            return 0
+            # For cancelled bookings, we check if there's any un-refunded money
+            # If paid 100 and refunded 0, balance is -100 (hotel owes guest or guest has credit)
+            # If paid 100 and refunded 100, balance is 0.
+            return self.get_net_total() - (self.get_total_paid() - self.get_total_refunded())
             
-        # We always use get_actual_total() for balance calculation because 
-        # it correctly handles both estimated rent (pre-checkout) and 
-        # actual rent (post-checkout) while always including additional charges.
-        total = self.get_actual_total()
-        
-        # Deduct total paid and net discounts
-        return total - self.get_total_paid() - (self.get_total_discounted() - self.discount) + self.get_total_refunded()
+        return self.get_net_total() - (self.get_total_paid() - self.get_total_refunded())
+
+    def get_actual_total(self):
+        """Legacy helper for backward compatibility - returns Net Total"""
+        return self.get_net_total()
     
     def get_payment_status(self):
         """Payment status"""
@@ -210,6 +235,28 @@ class Booking(SoftDeleteModel):
             return False
         return self.check_out_date <= timezone.now().date()
 
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        
+        if self.room:
+            # number_of_guests must not exceed room.capacity
+            if self.number_of_guests > self.room.capacity:
+                raise ValidationError(f"Number of guests ({self.number_of_guests}) exceeds room capacity ({self.room.capacity}).")
+            
+            # Single rooms must reject more than 2 guests
+            if self.room.room_type == 'Single' and self.number_of_guests > 2:
+                raise ValidationError("Single rooms cannot accommodate more than 2 guests.")
+
+        if self.pk:
+            old_instance = Booking.objects.get(pk=self.pk)
+            # Prevent occupancy changes once booking status is Confirmed or Checked-In
+            if old_instance.status in ['Confirmed', 'Checked-In'] and old_instance.number_of_guests != self.number_of_guests:
+                raise ValidationError("Occupancy (number of guests) cannot be modified once a booking is Confirmed or Checked-In.")
+            
+            # If a single room is booked for 1 guest, it is fully reserved and cannot later be converted to 2 guests.
+            if self.room.room_type == 'Single' and old_instance.number_of_guests == 1 and self.number_of_guests > 1:
+                 raise ValidationError("This single room was booked for 1 guest and is now locked. It cannot be converted to 2 guests.")
+
     def __str__(self):
         return f"Booking {self.id} - {self.guest.full_name}"
 
@@ -226,15 +273,12 @@ class Invoice(models.Model):
     
     @property
     def total_amount(self):
-        # We always use get_actual_total for non-cancelled invoices 
-        # to ensure room service and other charges are always visible.
-        if self.booking.status == 'Cancelled':
-            return 0
-        return self.booking.get_actual_total()
+        return self.booking.get_net_total()
     
     @property
     def amount_paid(self):
-        return self.booking.get_total_paid()
+        """Net amount collected (Paid - Refunded)"""
+        return self.booking.get_total_paid() - self.booking.get_total_refunded()
     
     @property
     def amount_discounted(self):
@@ -253,6 +297,7 @@ class Payment(SoftDeleteModel):
         ('Deposit', 'Deposit'),
         ('Payment', 'Payment'),
         ('Refund', 'Refund'),
+        ('Discount', 'Discount'),
         ('Adjustment', 'Adjustment'),
     )
     

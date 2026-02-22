@@ -113,7 +113,7 @@ def test_system():
         print(f"✓ {status} Booking #{booking.id}")
         print(f"  Guest: {guest.full_name}")
         print(f"  Room: {room.room_number} ({room.room_type})")
-        print(f"  Total Amount: ${booking.get_estimated_total()}")
+        print(f"  Total Amount: ${booking.get_net_total()}")
         print()
     
     # Step 4: Check-In Process
@@ -154,11 +154,11 @@ def test_system():
         # Pay full amount for first guest, partial for second, none for third
         if i == 0:
             # Full payment
-            payment_amount = booking.get_estimated_total()
+            payment_amount = booking.get_net_total()
             payment_method = 'Cash'
         elif i == 1:
             # Partial payment (50%)
-            payment_amount = booking.get_estimated_total() / 2
+            payment_amount = booking.get_net_total() / 2
             payment_method = 'Mobile'
         else:
             # No payment yet
@@ -180,7 +180,7 @@ def test_system():
             print(f"  Method: {payment.payment_method}")
             print(f"  Recorded by: {user.username}")
         else:
-            print(f"⚠ No payment for {booking.guest.full_name} (Balance: ${booking.get_estimated_total()})")
+            print(f"⚠ No payment for {booking.guest.full_name} (Balance: ${booking.get_net_total()})")
         print()
     
     # Step 7: Check-Out First Guest
@@ -205,7 +205,7 @@ def test_system():
     total_bookings = Booking.objects.count()
     checked_in = Booking.objects.filter(status='Checked-In').count()
     checked_out = Booking.objects.filter(status='Checked-Out').count()
-    total_revenue = sum(b.get_estimated_total() for b in Booking.objects.all())
+    total_revenue = sum(b.get_net_total() for b in Booking.objects.all())
     total_payments = sum(p.amount for p in Payment.objects.all())
     
     print(f"Total Bookings: {total_bookings}")

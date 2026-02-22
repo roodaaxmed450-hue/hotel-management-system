@@ -8,6 +8,20 @@ from django.db.models import Sum, Q
 from django.utils import timezone
 from .models import Room, Booking, Payment, Expense, Guest, Invoice, User
 from .forms import BookingForm, GuestForm, PaymentForm, ExpenseForm, RoomForm, UserForm
+from django.db.models import Case, When, F, Value, DecimalField
+
+def get_net_income(queryset):
+    """Helper to calculate net income (Payments + Deposits - Refunds)"""
+    return queryset.aggregate(
+        net=Sum(
+            Case(
+                When(payment_type__in=['Deposit', 'Payment'], then=F('amount')),
+                When(payment_type='Refund', then=-F('amount')),
+                default=Value(0),
+                output_field=DecimalField()
+            )
+        )
+    )['net'] or 0
 
 @login_required
 def dashboard(request):
@@ -26,11 +40,11 @@ def admin_dashboard(request):
     occupancy_rate = (occupied_count / total_rooms * 100) if total_rooms > 0 else 0
     
     today = timezone.now().date()
-    todays_income = Payment.objects.filter(date__date=today).aggregate(Sum('amount'))['amount__sum'] or 0
+    todays_income = get_net_income(Payment.objects.filter(date__date=today))
     total_expenses = Expense.objects.filter(status='Approved').aggregate(Sum('amount'))['amount__sum'] or 0
     pending_expenses = Expense.objects.filter(status='Pending').count()
     
-    monthly_income = Payment.objects.filter(date__month=today.month, date__year=today.year).aggregate(Sum('amount'))['amount__sum'] or 0
+    monthly_income = get_net_income(Payment.objects.filter(date__month=today.month, date__year=today.year))
     monthly_expenses = Expense.objects.filter(date__month=today.month, date__year=today.year, status='Approved').aggregate(Sum('amount'))['amount__sum'] or 0
     monthly_profit = monthly_income - monthly_expenses
 
@@ -53,7 +67,7 @@ def admin_dashboard(request):
         month_name = datetime(y, m, 1).strftime('%b')
         chart_labels.append(month_name)
         
-        inc = Payment.objects.filter(date__year=y, date__month=m).aggregate(Sum('amount'))['amount__sum'] or 0
+        inc = get_net_income(Payment.objects.filter(date__year=y, date__month=m))
         exp = Expense.objects.filter(date__year=y, date__month=m, status='Approved').aggregate(Sum('amount'))['amount__sum'] or 0
         
         income_data.append(float(inc))
@@ -94,7 +108,7 @@ def receptionist_dashboard(request):
     available_rooms_count = Room.objects.filter(status='Available').count()
     arrivals_today = Booking.objects.filter(check_in_date=today).count()
     checkouts_due = Booking.objects.filter(check_out_date=today, status='Checked-In').count()
-    total_collected_today = Payment.objects.filter(date__date=today).aggregate(Sum('amount'))['amount__sum'] or 0
+    total_collected_today = get_net_income(Payment.objects.filter(date__date=today))
     
     # Recent bookings for list
     recent_bookings = Booking.objects.order_by('-booking_date')[:5]
@@ -107,7 +121,6 @@ def receptionist_dashboard(request):
         'available_rooms_count': available_rooms_count,
         'arrivals_today': arrivals_today,
         'checkouts_due': checkouts_due,
-        'total_collected_today': total_collected_today,
         'total_collected_today': total_collected_today,
         'recent_bookings': recent_bookings,
         'overdue_bookings': Booking.objects.select_related('guest', 'room').filter(check_out_date__lt=today, status='Checked-In'),
@@ -177,12 +190,22 @@ def create_booking(request):
         form = BookingForm(request.POST)
         if form.is_valid():
             booking = form.save()
+            
+            # Sync Room Status: If booking is active (Reserved/Confirmed), mark room as Booked
+            if booking.status in ['Reserved', 'Confirmed']:
+                booking.room.status = 'Booked'
+                booking.room.save()
+                
             # Create Invoice automatically
             Invoice.objects.create(booking=booking)
             messages.success(request, 'Booking created successfully')
             return redirect('booking_list')
     else:
-        form = BookingForm()
+        initial_data = {}
+        room_id = request.GET.get('room')
+        if room_id:
+            initial_data['room'] = room_id
+        form = BookingForm(initial=initial_data)
     return render(request, 'hotel/booking_form.html', {'form': form})
 
 @login_required
@@ -415,7 +438,7 @@ def flexible_report(request):
     payments = Payment.objects.filter(date__date__range=[start_date, end_date])
     expenses = Expense.objects.filter(date__range=[start_date, end_date], status='Approved')
     
-    income_total = payments.aggregate(Sum('amount'))['amount__sum'] or 0
+    income_total = get_net_income(payments)
     expense_total = expenses.aggregate(Sum('amount'))['amount__sum'] or 0
     profit = income_total - expense_total
     
@@ -434,8 +457,13 @@ def flexible_report(request):
     # Rooms booked most often in this period (by number of bookings starting in period)
     top_rooms = Booking.objects.filter(booking_date__date__range=[start_date, end_date])\
         .values('room__room_number', 'room__room_type')\
-        .annotate(count=Count('id'), revenue=Sum('room__price_per_night'))\
+        .annotate(count=Count('id'), revenue=Sum('room_rate'))\
         .order_by('-count')[:5]
+        
+    # Clean room numbers for display
+    for room in top_rooms:
+        if "_archived_" in room['room__room_number']:
+            room['room__room_number'] = room['room__room_number'].split("_archived_")[0]
         
     context = {
         'start_date': start_date,
@@ -507,10 +535,25 @@ def add_room(request):
         return redirect('dashboard')
         
     if request.method == 'POST':
-        form = RoomForm(request.POST)
+        room_number = request.POST.get('room_number')
+        # Check if this room number exists anywhere (Recycle Bin OR Permanently Archived)
+        archived_room = Room.all_objects.filter(room_number=room_number).filter(
+            models.Q(is_deleted=True) | models.Q(is_permanently_deleted=True)
+        ).first()
+        
+        if archived_room:
+            # Resurrect the existing record and update its details
+            form = RoomForm(request.POST, instance=archived_room)
+        else:
+            form = RoomForm(request.POST)
+            
         if form.is_valid():
-            form.save()
-            messages.success(request, 'Room added successfully')
+            room = form.save(commit=False)
+            room.is_deleted = False
+            room.is_permanently_deleted = False
+            room.deleted_at = None
+            room.save()
+            messages.success(request, f'Room {room.room_number} has been restored/added successfully.')
             return redirect('room_list')
     else:
         form = RoomForm()
@@ -524,6 +567,20 @@ def edit_room(request, room_id):
         
     room = get_object_or_404(Room, id=room_id)
     if request.method == 'POST':
+        new_number = request.POST.get('room_number')
+        
+        # LOGICAL FIX: If the number is changing to one that is currently archived/deleted
+        if new_number != room.room_number:
+            existing_hidden = Room.all_objects.filter(room_number=new_number).exclude(id=room.id).first()
+            if existing_hidden:
+                # To avoid IntegrityError, we 'free' the number from the hidden record 
+                # by giving it a unique suffix. This preserves its history while letting
+                # the current room (ID 19) take the name '103'.
+                from django.utils import timezone
+                timestamp = timezone.now().strftime('%Y%m%d%H%M%S')
+                existing_hidden.room_number = f"{new_number}_archived_{timestamp}"
+                existing_hidden.save()
+
         form = RoomForm(request.POST, instance=room)
         if form.is_valid():
             form.save()
@@ -534,27 +591,62 @@ def edit_room(request, room_id):
     return render(request, 'hotel/room_form.html', {'form': form, 'edit_mode': True})
 
 @login_required
-@login_required
 def delete_room(request, room_id):
     if not request.user.is_admin():
         messages.error(request, 'Access Denied: Room deletion is restricted to Admins.')
         return redirect('room_list')
     room = get_object_or_404(Room, id=room_id)
-    # Strict validation: prevent breaking history
-    if room.bookings.exists():
-        messages.error(request, 'Audit Lock: This room has booking history and cannot be deleted. Try changing its status to Maintenance instead.')
+    
+    # Check for ACTIVE bookings (Reserved, Confirmed, Checked-In)
+    # We only block deletion if there are current or future stays.
+    active_reservations = room.bookings.exclude(status__in=['Checked-Out', 'Cancelled'])
+    
+    if active_reservations.exists():
+        messages.error(request, 'Integrity Error: Cannot remove a room that has an active stay or upcoming reservation.')
     else:
+        # Allow soft-delete even if historical data (Checked-Out/Cancelled) exists.
+        # This satisfies the requirement to keep previous data available.
         room.soft_delete()
-        messages.success(request, 'Room moved to Recycle Bin.')
+        messages.success(request, 'Room moved to Recycle Bin. Historical data remains intact.')
     return redirect('room_list')
 
 @login_required
 def edit_booking(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id)
+    old_room = booking.room
+    old_status = booking.status
+    
     if request.method == 'POST':
         form = BookingForm(request.POST, instance=booking)
         if form.is_valid():
-            form.save()
+            booking = form.save()
+            new_room = booking.room
+            new_status = booking.status
+            
+            # Handle Room or Status changes
+            if old_room != new_room:
+                # Free old room
+                old_room.status = 'Available'
+                old_room.save()
+                
+                # Mark new room (if booking is active)
+                if new_status in ['Reserved', 'Confirmed']:
+                    new_room.status = 'Booked'
+                    new_room.save()
+                elif new_status == 'Checked-In':
+                    new_room.status = 'Occupied'
+                    new_room.save()
+            else:
+                # Same room, but status might have changed
+                if old_status != new_status:
+                    if new_status in ['Reserved', 'Confirmed']:
+                        new_room.status = 'Booked'
+                    elif new_status == 'Checked-In':
+                        new_room.status = 'Occupied'
+                    elif new_status in ['Cancelled', 'Checked-Out']:
+                        new_room.status = 'Available'
+                    new_room.save()
+            
             messages.success(request, 'Booking updated successfully')
             return redirect('booking_detail', booking_id=booking.id)
     else:
@@ -641,22 +733,23 @@ def recycle_bin(request):
     from django.db.models import ProtectedError
     cutoff = timezone.now() - timedelta(days=7)
     
-    # Hard delete old items safely
-    try:
-        # We delete one by one or wrap individual chunks to ensure some progress if others fail
-        if Guest.objects.deleted().filter(deleted_at__lt=cutoff).exists():
-            Guest.objects.deleted().filter(deleted_at__lt=cutoff).delete()
-        if Room.objects.deleted().filter(deleted_at__lt=cutoff).exists():
-            Room.objects.deleted().filter(deleted_at__lt=cutoff).delete()
-        if Booking.objects.deleted().filter(deleted_at__lt=cutoff).exists():
-            Booking.objects.deleted().filter(deleted_at__lt=cutoff).delete()
-        if Expense.objects.deleted().filter(deleted_at__lt=cutoff).exists():
-            Expense.objects.deleted().filter(deleted_at__lt=cutoff).delete()
-        if Payment.objects.deleted().filter(deleted_at__lt=cutoff).exists():
-            Payment.objects.deleted().filter(deleted_at__lt=cutoff).delete()
-    except ProtectedError:
-        # Silently skip cleanup for protected records (they will be cleaned up later if dependencies are removed)
-        pass
+    # Hard delete old items safely or archive them if protected
+    cutoff_items = {
+        'Guest': Guest,
+        'Room': Room,
+        'Booking': Booking,
+        'Expense': Expense,
+        'Payment': Payment
+    }
+    
+    for label, model in cutoff_items.items():
+        old_items = model.all_objects.filter(is_deleted=True, is_permanently_deleted=False, deleted_at__lt=cutoff)
+        for item in old_items:
+            try:
+                item.delete()
+            except ProtectedError:
+                item.is_permanently_deleted = True
+                item.save()
 
     deleted_items = []
     
@@ -721,13 +814,81 @@ def permanent_delete_item(request, item_type, item_id):
     if model:
         from django.db.models import ProtectedError
         try:
-            obj = get_object_or_404(model.objects.deleted(), id=item_id)
+            # Try to get from the deleted manager (items in recycle bin)
+            obj = get_object_or_404(model.all_objects.filter(is_deleted=True, is_permanently_deleted=False), id=item_id)
             obj.delete()
-            messages.success(request, f'{item_type} permanently deleted.')
+            messages.success(request, f'{item_type} permanently deleted from database.')
         except ProtectedError:
-            messages.error(request, f'Financial Audit Lock: Cannot permanently delete this {item_type} because it is linked to other records (like payments or bookings) that are required for the financial ledger.')
+            # If linked to history, we mark it as permanently deleted (archived) instead of actual deletion
+            obj.is_permanently_deleted = True
+            obj.save()
+            messages.success(request, f'{item_type} has been permanently archived. It is now removed from the Recycle Bin, but historical records are preserved for the financial ledger.')
     
     return redirect('recycle_bin')
+
+@login_required
+def bulk_recycle_bin_action(request):
+    if not request.user.is_admin():
+        messages.error(request, 'Access Denied')
+        return redirect('dashboard')
+        
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        selected_items = request.POST.getlist('items') # Format: "Type:ID"
+        
+        if not selected_items:
+            messages.warning(request, 'No items selected.')
+            return redirect('recycle_bin')
+            
+        model_map = {
+            'Guest': Guest,
+            'Room': Room,
+            'Booking': Booking,
+            'Expense': Expense,
+            'Payment': Payment
+        }
+        
+        success_count = 0
+        error_count = 0
+        archived_count = 0
+        
+        from django.db.models import ProtectedError
+        
+        for item_str in selected_items:
+            try:
+                item_type, item_id = item_str.split(':')
+                model = model_map.get(item_type)
+                if not model: continue
+                
+                if action == 'restore':
+                    obj = get_object_or_404(model.all_objects.filter(is_deleted=True, is_permanently_deleted=False), id=item_id)
+                    obj.restore()
+                    success_count += 1
+                elif action == 'delete':
+                    obj = get_object_or_404(model.all_objects.filter(is_deleted=True, is_permanently_deleted=False), id=item_id)
+                    try:
+                        obj.delete()
+                        success_count += 1
+                    except ProtectedError:
+                        obj.is_permanently_deleted = True
+                        obj.save()
+                        archived_count += 1
+            except Exception:
+                error_count += 1
+        
+        if action == 'restore':
+            messages.success(request, f'Successfully restored {success_count} items.')
+        else:
+            msg = f'Permanently removed {success_count} items.'
+            if archived_count > 0:
+                msg += f' {archived_count} items were archived for financial history.'
+            messages.success(request, msg)
+            
+        if error_count > 0:
+            messages.error(request, f'Failed to process {error_count} items.')
+            
+    return redirect('recycle_bin')
+
 
 @login_required
 def search(request):
@@ -910,7 +1071,7 @@ def printable_financial_report(request):
     payments = Payment.objects.filter(date__date__range=[start_date, end_date])
     expenses = Expense.objects.filter(date__range=[start_date, end_date], status='Approved')
     
-    income_total = payments.aggregate(Sum('amount'))['amount__sum'] or 0
+    income_total = get_net_income(payments)
     expense_total = expenses.aggregate(Sum('amount'))['amount__sum'] or 0
     profit = income_total - expense_total
     

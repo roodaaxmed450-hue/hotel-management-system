@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KHMS - {% block title %}Property Management{% endblock %}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="{% static 'css/style.css' %}" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -257,7 +257,7 @@
                                             Overdue: {{ booking.guest.full_name }}
                                         </p>
                                         <p class="text-[10px] text-slate-500 mt-1">
-                                            Room {{ booking.room.room_number }} • Expected: {{ booking.check_out_date }}
+                                            Room {{ booking.room.display_room_number }} • Expected: {{ booking.check_out_date }}
                                         </p>
                                     </div>
                                 </div>

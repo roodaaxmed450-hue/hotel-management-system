@@ -1,10 +1,11 @@
-﻿<!DOCTYPE html>
+﻿{% load static %}
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <title>Invoice #{{ invoice.invoice_number }}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="{% static 'css/style.css' %}" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -120,8 +121,7 @@
                         <td class="py-4 px-2">
                             <p class="font-bold text-gray-900">Accommodation Charge</p>
                             <p class="text-gray-500 text-xs mt-1">
-                                Room {{ invoice.booking.room.room_number }}
-                                ({{ invoice.booking.room.get_room_type_display }})
+                                Room {{ invoice.booking.room.display_room_number }} ({{ invoice.booking.room.get_room_type_display }})
                             </p>
                         </td>
                         <td class="py-4 px-2 text-center text-gray-600">${{ invoice.booking.room_rate }}</td>
@@ -133,11 +133,7 @@
                             {{ invoice.booking.check_out_date|timeuntil:invoice.booking.check_in_date }}
                             {% endif %}
                         </td>
-                        <td class="py-4 px-2 text-right font-medium text-gray-900">
-                            <!-- We use total amount here directly as logic is complex in template -->
-                            ${{ invoice.booking.get_estimated_total|add:invoice.booking.discount }}
-                            <!-- Note: get_estimated_total normally subtracts discount, so we add it back to show Gross -->
-                        </td>
+                        <td class="py-4 px-2 text-right font-medium text-gray-900">${{ invoice.booking.get_room_charges }}</td>
                     </tr>
 
                     {% for charge in invoice.booking.additional_charges.all %}
@@ -161,14 +157,14 @@
                 <div class="flex justify-between text-sm text-gray-600">
                     <span>Subtotal</span>
                     <span class="font-medium">
-                        ${{ invoice.booking.get_estimated_total|add:invoice.booking.discount }}
+                        ${{ invoice.booking.get_total_gross }}
                     </span>
                 </div>
 
-                {% if invoice.booking.discount > 0 %}
+                {% if invoice.booking.get_total_discounted > 0 %}
                 <div class="flex justify-between text-sm text-green-600">
-                    <span>Discount Applied</span>
-                    <span class="font-medium">- ${{ invoice.booking.discount }}</span>
+                    <span>Discounts</span>
+                    <span class="font-medium">- ${{ invoice.booking.get_total_discounted }}</span>
                 </div>
                 {% endif %}
 
@@ -212,7 +208,7 @@
                             <td class="py-2">{{ payment.date|date:"M d, Y" }}</td>
                             <td class="py-2">{{ payment.get_payment_method_display }}</td>
                             <td class="py-2 font-mono text-gray-500">{{ payment.reference_number }}</td>
-                            <td class="py-2 text-right font-medium">${{ payment.amount }}</td>
+                            <td class="py-2 text-right font-medium">{% if payment.payment_type == 'Refund' or payment.payment_type == 'Discount' %}-{% endif %}${{ payment.amount }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>

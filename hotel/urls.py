@@ -49,6 +49,7 @@ urlpatterns = [
     path('recycle-bin/', views.recycle_bin, name='recycle_bin'),
     path('recycle-bin/restore/<str:item_type>/<int:item_id>/', views.restore_item, name='restore_item'),
     path('recycle-bin/delete/<str:item_type>/<int:item_id>/', views.permanent_delete_item, name='permanent_delete_item'),
+    path('recycle-bin/bulk-action/', views.bulk_recycle_bin_action, name='bulk_recycle_bin_action'),
     
     path('search/', views.search, name='search'),
     path('guests/report/', views.guest_report, name='guest_report'),

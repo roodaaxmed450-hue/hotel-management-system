@@ -29,14 +29,23 @@
                 {% for room in rooms %}
                 <tr class="hover:bg-gray-50 group">
                     <td class="px-6 py-4">
-                        <div class="font-bold text-gray-800">#{{ room.room_number }}</div>
+                        <div class="font-bold text-gray-800">#{{ room.display_room_number }}</div>
                         <div class="text-[10px] text-slate-500 uppercase font-medium">
                             {{ room.get_room_type_display }}
                         </div>
                     </td>
                     <td class="px-6 py-4">
-                        <span class="text-sm font-semibold text-slate-900">${{ room.price_per_night }}</span>
-                        <span class="text-[10px] text-slate-400 block lg:inline">/night</span>
+                        <div class="group/price relative inline-block">
+                            <span class="text-sm font-semibold text-slate-900">${{ room.price_per_night }}</span>
+                            <span class="text-[10px] text-slate-400 block lg:inline">/night</span>
+                            {% if room.room_type == 'Single' %}
+                            <div
+                                class="hidden group-hover/price:block absolute bottom-full left-0 mb-2 w-48 p-2 bg-slate-800 text-white text-[10px] rounded shadow-xl z-10">
+                                1 Guest: $8.00<br>
+                                2 Guests: $12.00
+                            </div>
+                            {% endif %}
+                        </div>
                     </td>
                     <td class="px-6 py-4 hidden md:table-cell">
                         <div class="flex items-center gap-1.5">
@@ -61,7 +70,16 @@
                     <td class="px-6 py-4 text-right">
                         {% if room.status == 'Available' or room.status == 'Maintenance' %}
                         <div
-                            class="flex justify-end items-center gap-4 opacity-0 group-hover:opacity-100 lg:opacity-100 transition-opacity">
+                            class="flex justify-end items-center gap-3 opacity-0 group-hover:opacity-100 lg:opacity-100 transition-opacity">
+                            {% if room.status == 'Available' %}
+                            <a href="{% url 'create_booking' %}?room={{ room.id }}"
+                                class="p-1.5 text-slate-400 hover:text-blue-600 transition-colors" title="Book Now">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 4v16m8-8H4"></path>
+                                </svg>
+                            </a>
+                            {% endif %}
                             <a href="{% url 'edit_room' room.id %}"
                                 class="text-blue-600 hover:text-blue-800 font-bold text-xs uppercase tracking-wider">Edit</a>
                             <a href="{% url 'delete_room' room.id %}"

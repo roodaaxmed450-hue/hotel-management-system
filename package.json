@@ -1,0 +1,28 @@
+{
+  "name": "hrm-system",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:css": "tailwindcss -i ./static/css/src/input.css -o ./static/css/style.css --minify",
+    "watch:css": "tailwindcss -i ./static/css/src/input.css -o ./static/css/style.css --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/roodaaxmed450-hue/hotel-management-system.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/roodaaxmed450-hue/hotel-management-system/issues"
+  },
+  "homepage": "https://github.com/roodaaxmed450-hue/hotel-management-system#readme",
+  "devDependencies": {
+    "autoprefixer": "^10.4.24",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18"
+  }
+}

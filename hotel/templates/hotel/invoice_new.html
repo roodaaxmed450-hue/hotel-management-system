@@ -1,10 +1,11 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <title>Invoice #{{ invoice.invoice_number }}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="{% static 'css/style.css' %}" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -120,16 +121,13 @@
                         <td class="py-4 px-2">
                             <p class="font-bold text-gray-900">Accommodation Charge</p>
                             <p class="text-gray-500 text-xs mt-1">
-                                Room {{ invoice.booking.room.room_number }} ({{
-                                invoice.booking.room.get_room_type_display }})
+                                Room {{ invoice.booking.room.room_number }} ({{ invoice.booking.room.get_room_type_display }})
                             </p>
                         </td>
                         <td class="py-4 px-2 text-center text-gray-600">${{ invoice.booking.room_rate }}</td>
                         <td class="py-4 px-2 text-center text-gray-600">
                             {% if invoice.booking.status == 'Checked-Out' %}
-                            {{
-                            invoice.booking.get_actual_total|divisibleby:invoice.booking.room_rate|yesno:"??,Variable"
-                            }}
+                            {{ invoice.booking.get_actual_total|divisibleby:invoice.booking.room_rate|yesno:"??,Variable" }}
                             <!-- Complex logic needed to show exact nights, simplifying for display: -->
                             Calc.
                             {% else %}

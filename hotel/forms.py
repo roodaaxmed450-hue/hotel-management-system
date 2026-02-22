@@ -15,12 +15,13 @@ class GuestForm(forms.ModelForm):
 class BookingForm(forms.ModelForm):
     class Meta:
         model = Booking
-        fields = ['guest', 'room', 'check_in_date', 'check_out_date']
+        fields = ['guest', 'room', 'check_in_date', 'check_out_date', 'number_of_guests']
         widgets = {
             'guest': forms.Select(attrs={'class': 'w-full p-2 border rounded'}),
             'room': forms.Select(attrs={'class': 'w-full p-2 border rounded'}),
             'check_in_date': forms.DateInput(attrs={'class': 'w-full p-2 border rounded', 'type': 'date'}),
-            'check_out_date': forms.DateInput(attrs={'class': 'w-full p-2 border rounded', 'type': 'date'}),
+            'check_out_date': forms.DateInput(attrs={'type': 'date', 'class': 'w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-white'}),
+            'number_of_guests': forms.NumberInput(attrs={'min': 1, 'max': 10, 'class': 'w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-white'}),
         }
 
     def clean(self):
@@ -28,6 +29,7 @@ class BookingForm(forms.ModelForm):
         room = cleaned_data.get('room')
         check_in = cleaned_data.get('check_in_date')
         check_out = cleaned_data.get('check_out_date')
+        number_of_guests = cleaned_data.get('number_of_guests')
 
         if check_in and check_out:
             if check_out <= check_in:
@@ -45,6 +47,27 @@ class BookingForm(forms.ModelForm):
                 
                 if overlapping_bookings.exists():
                     raise forms.ValidationError("Room is already booked for these dates.")
+                
+                # Check for maintenance status
+                if room.status == 'Maintenance':
+                    raise forms.ValidationError("This room is currently under maintenance and cannot be booked.")
+
+                # Occupancy validation
+                if number_of_guests:
+                    if number_of_guests > room.capacity:
+                        raise forms.ValidationError(f"Number of guests ({number_of_guests}) exceeds room capacity ({room.capacity}).")
+                    
+                    if room.room_type == 'Single' and number_of_guests > 2:
+                        raise forms.ValidationError("Single rooms cannot accommodate more than 2 guests.")
+                    
+                    if self.instance.pk:
+                        old_instance = Booking.objects.get(pk=self.instance.pk)
+                        if old_instance.status in ['Confirmed', 'Checked-In'] and old_instance.number_of_guests != number_of_guests:
+                            raise forms.ValidationError("Occupancy (number of guests) cannot be modified once a booking is Confirmed or Checked-In.")
+                        
+                        if room.room_type == 'Single' and old_instance.number_of_guests == 1 and number_of_guests > 1:
+                            raise forms.ValidationError("This single room was booked for 1 guest and is now locked. It cannot be converted to 2 guests.")
+
         return cleaned_data
 
 class PaymentForm(forms.ModelForm):
@@ -81,6 +104,30 @@ class RoomForm(forms.ModelForm):
             'capacity': forms.NumberInput(attrs={'class': 'w-full p-2 border rounded'}),
             'status': forms.Select(attrs={'class': 'w-full p-2 border rounded'}),
         }
+
+    def clean_room_number(self):
+        room_number = self.cleaned_data.get('room_number')
+        # Check if we're editing an existing room
+        if self.instance and self.instance.pk:
+            if self.instance.room_number == room_number:
+                return room_number
+        
+        # Check if any room (including deleted) has this number
+        from .models import Room
+        existing_room = Room.all_objects.filter(room_number=room_number).first()
+        
+        if existing_room:
+             # Case 1: Active room (Not deleted and not archived)
+             if not existing_room.is_deleted and not existing_room.is_permanently_deleted:
+                 raise forms.ValidationError(f"Room {room_number} is currently active in your inventory.")
+             
+             # Case 2: In Recycle Bin or Permanently Archived
+             # We allow this to pass validation because the VIEW will handle 
+             # "resurrecting" or "freeing" the number to avoid IntegrityErrors.
+             pass
+
+        return room_number
+
 
     def clean_status(self):
         status = self.cleaned_data.get('status')
