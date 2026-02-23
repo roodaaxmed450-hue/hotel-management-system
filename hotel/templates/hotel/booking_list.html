@@ -4,86 +4,244 @@
 {% block header %}Booking Management{% endblock %}
 
 {% block content %}
-<div class="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-    <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-        <h3 class="text-lg font-semibold text-gray-800">Reservation List</h3>
-        <a href="{% url 'create_booking' %}"
-            class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm">New Booking</a>
+<div class="space-y-4">
+    <!-- Tabs Header & Search -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex bg-gray-100 p-1 rounded-xl w-fit">
+            <button onclick="switchTab('active')" id="active-tab-btn"
+                class="px-6 py-2 rounded-lg text-sm font-bold transition-all duration-200 bg-white text-blue-600 shadow-sm">
+                Active Stays
+                <span class="ml-2 px-1.5 py-0.5 bg-blue-100 text-blue-600 rounded text-[10px]">
+                    {{ active_bookings.count }}
+                </span>
+            </button>
+            <button onclick="switchTab('history')" id="history-tab-btn"
+                class="px-6 py-2 rounded-lg text-sm font-bold transition-all duration-200 text-gray-500 hover:text-gray-700">
+                History
+                <span class="ml-2 px-1.5 py-0.5 bg-gray-200 text-gray-600 rounded text-[10px]">
+                    {{ completed_bookings.count }}
+                </span>
+            </button>
+        </div>
+
+        <div class="flex flex-1 md:max-w-md items-center gap-3">
+            <div class="relative flex-1">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </span>
+                <input type="text" id="booking-search" onkeyup="filterBookings()" placeholder="Search guest or room..."
+                    class="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-xl leading-5 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm transition-all shadow-sm">
+            </div>
+            <a href="{% url 'create_booking' %}"
+                class="whitespace-nowrap px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 text-sm font-bold shadow-md transition-all flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                New Booking
+            </a>
+        </div>
     </div>
-    <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm text-gray-600">
-            <thead class="bg-gray-50 text-gray-700 uppercase text-xs font-semibold">
-                <tr>
-                    <th class="px-6 py-3">Reservation Details</th>
-                    <th class="px-6 py-3 hidden md:table-cell">Stay Period</th>
-                    <th class="px-6 py-3">Status</th>
-                    <th class="px-6 py-3 text-right">Action</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-                {% for booking in bookings %}
-                <tr class="hover:bg-gray-50 group">
-                    <td class="px-6 py-4">
-                        <div class="flex items-center gap-3">
-                            <div
-                                class="h-8 w-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs">
-                                {{ booking.room.display_room_number }}
-                            </div>
-                            <div>
-                                <div class="font-bold text-gray-800 leading-tight">{{ booking.guest.full_name }}</div>
-                                <div class="text-[10px] text-slate-500 font-medium uppercase mt-0.5">
-                                    {{ booking.room.get_room_type_display }} • #{{ booking.id }}
+
+    <!-- Active Bookings Tab -->
+    <div id="active-tab-content" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-gray-600">
+                <thead
+                    class="bg-gray-50 text-gray-400 uppercase text-[10px] font-bold tracking-widest border-b border-gray-100">
+                    <tr>
+                        <th class="px-6 py-4">Guest & Room</th>
+                        <th class="px-6 py-4 hidden md:table-cell">Stay Period</th>
+                        <th class="px-6 py-4">Status</th>
+                        <th class="px-6 py-4 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    {% for booking in active_bookings %}
+                    <tr class="hover:bg-blue-50/30 group transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-4">
+                                <div
+                                    class="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center font-bold shadow-sm">
+                                    {{ booking.room.display_room_number }}
                                 </div>
-                                <div class="text-[10px] text-blue-600 font-bold md:hidden mt-1">
-                                    {{ booking.check_in_date|date:"M d" }} - {{ booking.check_out_date|date:"M d" }}
+                                <div>
+                                    <div class="font-bold text-gray-900">{{ booking.guest.full_name }}</div>
+                                    <div class="text-[10px] text-gray-500 font-medium uppercase tracking-tight">
+                                        {{ booking.room.get_room_type_display }} • ID #{{ booking.id }}
+                                    </div>
+                                    <div class="text-[10px] text-blue-600 font-medium">
+                                        Checkout:
+                                        {% if booking.actual_checkout %}
+                                        {{ booking.actual_checkout|date:"d M, Y" }}
+                                        {% else %}
+                                        {{ booking.check_out_date|date:"d M, Y" }}
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </td>
-                    <td class="px-6 py-4 hidden md:table-cell">
-                        <div class="text-xs font-semibold text-slate-700">{{ booking.check_in_date }}</div>
-                        <div class="text-[10px] text-slate-400">to {{ booking.check_out_date }}</div>
-                    </td>
-                    <td class="px-6 py-4">
-                        <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider
-                            {% if booking.status == 'Confirmed' %}bg-blue-50 text-blue-600 border border-blue-100
-                            {% elif booking.status == 'Checked-In' %}bg-green-50 text-green-600 border border-green-100
-                            {% elif booking.status == 'Checked-Out' %}bg-slate-50 text-slate-500 border border-slate-200
-                            {% else %}bg-orange-50 text-orange-600 border border-orange-100{% endif %}">
-                            {{ booking.get_status_display }}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 text-right">
-                        <div
-                            class="flex justify-end items-center gap-3 opacity-0 group-hover:opacity-100 lg:opacity-100 transition-opacity">
+                        </td>
+                        <td class="px-6 py-4 hidden md:table-cell">
+                            <div class="text-xs text-gray-700 font-bold">
+                                {{ booking.check_in_date|date:"d M" }} - {{ booking.check_out_date|date:"d M, Y" }}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider shadow-sm border
+                                {% if booking.status == 'Confirmed' %}bg-indigo-50 text-indigo-600 border-indigo-100
+                                {% elif booking.status == 'Checked-In' %}bg-emerald-50 text-emerald-600 border-emerald-100
+                                {% else %}bg-amber-50 text-amber-600 border-amber-100{% endif %}">
+                                {{ booking.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <div class="flex justify-end gap-2">
+                                <a href="{% url 'booking_detail' booking.id %}"
+                                    class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                </a>
+                                <a href="{% url 'edit_booking' booking.id %}"
+                                    class="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="px-6 py-12 text-center text-gray-400 italic">No active bookings found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- History Tab -->
+    <div id="history-tab-content" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-gray-600">
+                <thead
+                    class="bg-gray-50 text-gray-400 uppercase text-[10px] font-bold tracking-widest border-b border-gray-100">
+                    <tr>
+                        <th class="px-6 py-4">Guest & Room</th>
+                        <th class="px-6 py-4 hidden md:table-cell">Stay Period</th>
+                        <th class="px-6 py-4">Status</th>
+                        <th class="px-6 py-4 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    {% for booking in completed_bookings %}
+                    <tr class="hover:bg-gray-50/50 group grayscale-[0.5] hover:grayscale-0 transition-all">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-4">
+                                <div
+                                    class="h-10 w-10 rounded-xl bg-gray-100 text-gray-500 flex items-center justify-center font-bold">
+                                    {{ booking.room.display_room_number }}
+                                </div>
+                                <div>
+                                    <div class="font-bold text-gray-700">{{ booking.guest.full_name }}</div>
+                                    <div class="text-[10px] text-gray-400 font-medium uppercase tracking-tight">
+                                        {{ booking.room.get_room_type_display }} • ID #{{ booking.id }}
+                                    </div>
+                                    <div class="text-[10px] text-gray-400 font-medium">
+                                        Checkout:
+                                        {% if booking.actual_checkout %}
+                                        {{ booking.actual_checkout|date:"d M, Y" }}
+                                        {% else %}
+                                        {{ booking.check_out_date|date:"d M, Y" }}
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 hidden md:table-cell">
+                            <div class="text-xs text-gray-500 italic">
+                                {{ booking.check_in_date|date:"d M" }} - {{ booking.check_out_date|date:"d M, Y" }}
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border
+                                {% if booking.status == 'Checked-Out' %}bg-gray-50 text-gray-500 border-gray-200
+                                {% else %}bg-red-50 text-red-500 border-red-100{% endif %}">
+                                {{ booking.get_status_display }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-right">
                             <a href="{% url 'booking_detail' booking.id %}"
-                                class="p-1.5 text-slate-400 hover:text-blue-600 transition-colors" title="View Details">
+                                class="p-2 inline-block text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
-                                    </path>
+                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                 </svg>
                             </a>
-                            <a href="{% url 'edit_booking' booking.id %}"
-                                class="p-1.5 text-slate-400 hover:text-emerald-600 transition-colors" title="Edit">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
-                                    </path>
-                                </svg>
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="7" class="px-6 py-8 text-center text-gray-400">No bookings found.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="px-6 py-12 text-center text-gray-400 italic">No history found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
+
+<script>
+    function filterBookings() {
+        const input = document.getElementById('booking-search');
+        const filter = input.value.toLowerCase();
+
+        // Filter active tab rows
+        const activeRows = document.querySelectorAll('#active-tab-content tbody tr');
+        activeRows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(filter) ? '' : 'none';
+        });
+
+        // Filter history tab rows
+        const historyRows = document.querySelectorAll('#history-tab-content tbody tr');
+        historyRows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(filter) ? '' : 'none';
+        });
+    }
+
+    function switchTab(tab) {
+        const activeBtn = document.getElementById('active-tab-btn');
+        const historyBtn = document.getElementById('history-tab-btn');
+        const activeContent = document.getElementById('active-tab-content');
+        const historyContent = document.getElementById('history-tab-content');
+
+        if (tab === 'active') {
+            activeBtn.classList.add('bg-white', 'text-blue-600', 'shadow-sm');
+            activeBtn.classList.remove('text-gray-500');
+            historyBtn.classList.remove('bg-white', 'text-blue-600', 'shadow-sm');
+            historyBtn.classList.add('text-gray-500');
+            activeContent.classList.remove('hidden');
+            historyContent.classList.add('hidden');
+        } else {
+            historyBtn.classList.add('bg-white', 'text-blue-600', 'shadow-sm');
+            historyBtn.classList.remove('text-gray-500');
+            activeBtn.classList.remove('bg-white', 'text-blue-600', 'shadow-sm');
+            activeBtn.classList.add('text-gray-500');
+            historyContent.classList.remove('hidden');
+            activeContent.classList.add('hidden');
+        }
+    }
+</script>
 {% endblock %}

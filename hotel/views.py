@@ -181,8 +181,23 @@ def delete_guest(request, guest_id):
 
 @login_required
 def booking_list(request):
-    bookings = Booking.objects.select_related('guest', 'room').all().order_by('-booking_date')
-    return render(request, 'hotel/booking_list.html', {'bookings': bookings})
+    from django.db.models import Case, When, Value, IntegerField
+    
+    # Active Bookings: Reserved, Confirmed, Checked-In
+    active_bookings = Booking.objects.select_related('guest', 'room').filter(
+        status__in=['Reserved', 'Confirmed', 'Checked-In']
+    ).order_by('check_in_date')
+    
+    # Completed/History: Checked-Out, Cancelled, No-Show
+    # Sorted by checkout date descending (latest at top)
+    completed_bookings = Booking.objects.select_related('guest', 'room').filter(
+        status__in=['Checked-Out', 'Cancelled', 'No-Show']
+    ).order_by('-check_out_date', '-actual_checkout')
+    
+    return render(request, 'hotel/booking_list.html', {
+        'active_bookings': active_bookings,
+        'completed_bookings': completed_bookings,
+    })
 
 @login_required
 def create_booking(request):
